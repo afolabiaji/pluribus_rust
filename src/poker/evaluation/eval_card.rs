@@ -16,20 +16,25 @@
 /// - Detect flushes
 /// - Detect straights
 /// and is also quite performant.
-
 use std::collections::HashMap;
 use std::iter::zip;
-
 
 // the basics
 pub const STR_RANKS: &str = "23456789TJQKA";
 pub const INT_RANKS: [i32; 13] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 pub const PRIMES: [i32; 13] = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41];
-pub const INT_SUIT_TO_CHAR_SUIT: &str = "xshxdxxxc";
 // hearts and diamonds
-pub const PRETTY_REDS: [i32;2] = [2, 4];
+pub const PRETTY_REDS: [i32; 2] = [2, 4];
 
 lazy_static! {
+    // conversion from int => string
+    pub static ref INT_SUIT_TO_CHAR_SUIT:HashMap<i32, &'static str> = HashMap::from([
+        (1, "s"),  // spades
+        (2, "h"),  // hearts
+        (4, "d"),  // diamonds
+        (8, "c"),  // clubs
+    ]);
+
     // conversion from string => int
     pub static ref CHAR_SUIT_TO_INT_SUIT:HashMap<&'static str, i32> = HashMap::from([
         ("s", 1),  // spades
