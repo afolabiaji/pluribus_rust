@@ -1,6 +1,6 @@
 /// Static class that handles cards. We represent cards as 32-bit integers, so
 /// there is no object instantiation - they are just ints. Most of the bits are
-///used, and have a specific meaning. See below:
+/// used, and have a specific meaning. See below:
 ///                                EvaluationCard:
 ///                      bitrank     suit rank   prime
 ///                +--------+--------+--------+--------+

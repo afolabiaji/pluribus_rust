@@ -1,20 +1,20 @@
-///Number of Distinct Hand Values:
-///Straight Flush   10
-///Four of a Kind   156      [(13 choose 2) * (2 choose 1)]
-///Full Houses      156      [(13 choose 2) * (2 choose 1)]
-///Flush            1277     [(13 choose 5) - 10 straight flushes]
-///Straight         10
-///Three of a Kind  858      [(13 choose 3) * (3 choose 1)]
-///Two Pair         858      [(13 choose 3) * (3 choose 2)]
-///One Pair         2860     [(13 choose 4) * (4 choose 1)]
-///High Card      + 1277     [(13 choose 5) - 10 straights]
-///-------------------------
-///TOTAL            7462
-///Here we create a lookup table which maps:
-///    5 card hand's unique prime product => rank in range [1, 7462]
-///Examples:
-///* Royal flush (best hand possible)          => 1
-///* 7-5-4-3-2 unsuited (worst hand possible)  => 7462
+/// Number of Distinct Hand Values:
+/// Straight Flush   10
+/// Four of a Kind   156      [(13 choose 2) * (2 choose 1)]
+/// Full Houses      156      [(13 choose 2) * (2 choose 1)]
+/// Flush            1277     [(13 choose 5) - 10 straight flushes]
+/// Straight         10
+/// Three of a Kind  858      [(13 choose 3) * (3 choose 1)]
+/// Two Pair         858      [(13 choose 3) * (3 choose 2)]
+/// One Pair         2860     [(13 choose 4) * (4 choose 1)]
+/// High Card      + 1277     [(13 choose 5) - 10 straights]
+/// -------------------------
+/// TOTAL            7462
+/// Here we create a lookup table which maps:
+///     5 card hand's unique prime product => rank in range [1, 7462]
+/// Examples:
+/// * Royal flush (best hand possible)          => 1
+/// * 7-5-4-3-2 unsuited (worst hand possible)  => 7462
 use std::collections::HashMap;
 
 pub const MAX_STRAIGHT_FLUSH:i32 = 10;
