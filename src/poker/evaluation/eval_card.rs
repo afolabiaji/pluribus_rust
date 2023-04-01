@@ -97,3 +97,24 @@ fn get_rank_int(card_int:i32) -> i32{
 fn get_suit_int(card_int:i32) -> i32{
     (card_int >> 12) & 0xF
 }
+
+
+fn print_pretty_card(card_int:i32){
+    println!("{int_to_pretty_str(card_int)}");
+}
+
+fn print_pretty_cards(card_ints:Vec<i32>){
+    let mut output = String::from(" ");
+
+    for i in 0..card_ints.len(){
+        let c = card_ints[i];
+        output.push_str(int_to_pretty_str(c));
+        if i != card_ints.len() - 1{
+            output.push_str(",");
+        }else{
+            output.push_str(" ");
+        }
+    }
+
+    println!("{output}");
+}
