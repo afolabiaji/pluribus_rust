@@ -21,22 +21,14 @@ use super::eval_card::{
 };
 use std::fs::File;
 use std::io::{BufWriter, Write};
+use itertools::Itertools;
 
 
 
 
 pub struct LookupTable {
-    flush_lookup: HashMap<u64, i32>,
-    unsuited_lookup: HashMap<u64, i32>,
-    // MAX_STRAIGHT_FLUSH:i32,
-    // MAX_FOUR_OF_A_KIND:i32,
-    // MAX_FULL_HOUSE:i32,
-    // MAX_FLUSH:i32,
-    // MAX_STRAIGHT:i32,
-    // MAX_THREE_OF_A_KIND:i32,
-    // MAX_TWO_PAIR:i32,
-    // MAX_PAIR:i32,
-    // MAX_HIGH_CARD:i32,
+    flush_lookup: HashMap<i32, i32>,
+    unsuited_lookup: HashMap<i32, i32>,
 }
 
 impl LookupTable {
@@ -80,7 +72,7 @@ impl LookupTable {
     }
     
     pub fn new() -> LookupTable {
-        let lookup_table:LookupTable = LookupTable {
+        let mut lookup_table:LookupTable = LookupTable {
             flush_lookup: HashMap::new(),
             unsuited_lookup: HashMap::new(),
         };
@@ -89,7 +81,7 @@ impl LookupTable {
         lookup_table
     }
 
-    fn flushes(&self){
+    fn flushes(&mut self){
         // Straight flushes and flushes.
 
         // Lookup is done on 13 bit integer (2^13 > 7462):
@@ -97,7 +89,7 @@ impl LookupTable {
         
 
         // straight flushes in rank order
-        let straight_flushes: [i32; 10] = [
+        let straight_flushes: Vec<i32> = Vec::from([
             7936,  // int('0b1111100000000', 2), // royal flush
             3968,  // int('0b111110000000', 2),
             1984,  // int('0b11111000000', 2),
@@ -108,37 +100,37 @@ impl LookupTable {
             62,  // int('0b111110', 2),
             31,  // int('0b11111', 2),
             4111,  // int('0b1000000001111', 2) // 5 high
-        ];
+        ]);
 
         // now we'll dynamically generate all the other
         // flushes (including straight flushes)
         let mut flushes = Vec::new();
-        let intval = isize::from_str_radix("0b11111", 2).unwrap()
-        let gen = LookupTable::get_lexographically_next_bit_sequence(intval);
+        let intval = i32::from_str_radix("0b11111", 2).unwrap();
+        let mut gen = LookupTable::get_lexographically_next_bit_sequence(intval);
 
         // 1277 = number of high cards
         // 1277 + len(str_flushes) is number of hands with all cards unique rank
         let flush_len = 0..(1277 + straight_flushes.len() - 1);
-        for i in flush_len{
+        for _ in flush_len {
             // we also iterate over SFs
             // pull the next flush pattern from our generator
-            let f = gen.next();
-
+            let f = gen.next().unwrap();
+            
             // if this flush matches perfectly any
             // straight flush, do not add it
             let mut notSF: bool = true;
-            for sf in straight_flushes{
+            for sf in &straight_flushes {
                 // if f XOR sf == 0, then bit pattern
                 // is same, and we should not add
-                if !(f ^ sf){
+                if (f ^ sf) == 0 {
                     notSF = false
                 };
             }
                 
 
-            if notSF{
+            if notSF {
                 flushes.push(f)
-            }
+            };
         }
         // we started from the lowest straight pattern, now we want to start
         // ranking from the most powerful hands, so we reverse
@@ -147,29 +139,29 @@ impl LookupTable {
         // start with straight flushes and the rank of 1
         // since it is the best hand in poker
         // rank 1 = Royal Flush!
-        self._fill_in_lookup_table(
+        LookupTable::fill_in_lookup_table(
             1,
-            straight_flushes,
-            self.flush_lookup
+            &straight_flushes,
+            &mut self.flush_lookup
         );
         // we start the counting for flushes on max full house, which
         // is the worst rank that a full house can have (2,2,2,3,3)
-        self._fill_in_lookup_table(
-            self.MAX_FULL_HOUSE + 1,
-            flushes,
-            self.flush_lookup
+        LookupTable::fill_in_lookup_table(
+            LookupTable::MAX_FULL_HOUSE + 1,
+            &flushes,
+            &mut self.flush_lookup
         );
         // we can reuse these bit sequences for straights
         // and high cards since they are inherently related
         // and differ only by context
-        self.straight_and_highcards(straight_flushes, flushes);
+        self.straight_and_highcards(&straight_flushes, &flushes);
             
     }
 
-    fn fill_in_lookup_table(&mut self, rank_init: i32, rankbits_list: &Vec<i32>, lookup_table: &mut HashMap<u64, i32>) {
+    fn fill_in_lookup_table(rank_init: i32, rankbits_list: &Vec<i32>, lookup_table: &mut HashMap<i32, i32>) {
         let mut rank = rank_init;
-        for rb in rankbits_list {
-            let prime_product = prime_product_from_rankbits(*rb);
+        for rb in rankbits_list{
+            let prime_product = EvaluationCard::prime_product_from_rankbits(*rb);
             lookup_table.insert(prime_product, rank);
             rank += 1;
         }
@@ -249,9 +241,9 @@ impl LookupTable {
                 let product = 
                     EvaluationCard::PRIMES[*pairrank] 
                     * EvaluationCard::PRIMES[*pairrank]
-                    * EvaluationCard::PRIMES[k1] 
-                    * EvaluationCard::PRIMES[k2] 
-                    * EvaluationCard::PRIMES[k3];
+                    * EvaluationCard::PRIMES[*k1] 
+                    * EvaluationCard::PRIMES[*k2] 
+                    * EvaluationCard::PRIMES[*k3];
                 self.unsuited_lookup.insert(product, rank);
                 rank += 1;
             }
@@ -259,14 +251,14 @@ impl LookupTable {
     }
 
     fn straight_and_highcards(&mut self, straights: &Vec<i32>, highcards: &Vec<i32>) {
-        self._fill_in_lookup_table(
-            self.MAX_FLUSH + 1,
-            straights,
+        LookupTable::fill_in_lookup_table(
+            LookupTable::MAX_FLUSH + 1,
+            &straights,
             &mut self.unsuited_lookup
         );
-        self._fill_in_lookup_table(
-            self.MAX_PAIR + 1,
-            highcards,
+        LookupTable::fill_in_lookup_table(
+            LookupTable::MAX_PAIR + 1,
+            &highcards,
             &mut self.unsuited_lookup
         );
     }
@@ -285,7 +277,7 @@ impl LookupTable {
         Ok(())
     }
 
-    fn get_lexographically_next_bit_sequence(bits: i64) -> impl Iterator<Item = i64> {
+    fn get_lexographically_next_bit_sequence(bits: i32) -> impl Iterator<Item = i32> {
         let t = (bits | (bits - 1)) + 1;
         let mut next = t | (((t & -t) / (bits & -bits)) >> 1) - 1;
         std::iter::from_fn(move || {

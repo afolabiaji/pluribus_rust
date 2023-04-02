@@ -17,15 +17,11 @@
 /// - Detect straights
 /// and is also quite performant.
 use std::collections::HashMap;
+use std::fmt::Display;
 use std::iter::zip;
 use colored::*;
 
-pub struct EvaluationCard{
-    STR_RANKS: [char; 13],
-    INT_RANKS: [i32; 13],
-    PRIMES: [i32; 13],
-    PRETTY_REDS: [i32; 2]
-}
+pub struct EvaluationCard;
 
 impl EvaluationCard{
     // the basics
@@ -38,7 +34,7 @@ impl EvaluationCard{
     pub const PRETTY_REDS: [i32; 2] = [2, 4];
 
     // conversion from int => string
-    pub fn INT_SUIT_TO_CHAR_SUIT(&self) -> HashMap<i32, char> { 
+    pub fn INT_SUIT_TO_CHAR_SUIT() -> HashMap<i32, char> { 
         HashMap::from([
             (1, 's'),  // spades
             (2, 'h'),  // hearts
@@ -48,7 +44,7 @@ impl EvaluationCard{
     }
 
     // conversion from string => int
-    pub fn CHAR_SUIT_TO_INT_SUIT(&self) -> HashMap<char, i32> {
+    pub fn CHAR_SUIT_TO_INT_SUIT() -> HashMap<char, i32> {
         HashMap::from([
             ('s', 1),  // spades
             ('h', 2),  // hearts
@@ -58,13 +54,13 @@ impl EvaluationCard{
     }
 
     // for pretty printing
-    pub fn CHAR_RANK_TO_INT_RANK(&self) -> HashMap<&char, &i32> { 
+    pub fn CHAR_RANK_TO_INT_RANK() -> HashMap<char, i32> { 
         HashMap::from_iter(
-            zip(&self.STR_RANKS, &self.INT_RANKS).collect::<Vec<_>>()
+            zip(EvaluationCard::STR_RANKS, EvaluationCard::INT_RANKS).collect::<Vec<_>>()
         )
     }
 
-    pub fn PRETTY_SUITS(&self) -> HashMap<i32, char> {
+    pub fn PRETTY_SUITS() -> HashMap<i32, char> {
         HashMap::from([
             (1, '\u{2660}'),  // spades
             (2, '\u{2665}'),  // hearts
@@ -74,20 +70,22 @@ impl EvaluationCard{
     }
     
 
-    pub fn new(&self, string: &str) -> i32 {
+    pub fn new(string: &str) -> i32 {
         let string_bytes: &[u8] = string.as_bytes();
         let rank_char: char = string_bytes[0] as char;
 
         let suit_char: char = string_bytes[1] as char;
 
-        let rank_int: &i32 = self.CHAR_RANK_TO_INT_RANK()
-            .get(&rank_char)
-            .unwrap();
-        let suit_int: &i32 = self.CHAR_SUIT_TO_INT_SUIT()
-            .get(&suit_char)
-            .unwrap();
+        let rank_binding = EvaluationCard::CHAR_RANK_TO_INT_RANK();
+        let rank_int: &i32 = rank_binding.get(&rank_char)
+            .expect(&EvaluationCard::generate_panic_string(&rank_char, "CHAR_RANK_TO_INT_RANK"));
+        
+        let suit_binding = EvaluationCard::CHAR_SUIT_TO_INT_SUIT();
+        let suit_int: &i32 = suit_binding.get(&suit_char)
+            .expect(&EvaluationCard::generate_panic_string(&suit_char, "CHAR_SUIT_TO_INT_SUIT"));
+                
 
-        let rank_prime: i32 = self.PRIMES[*rank_int as usize];
+        let rank_prime: i32 = EvaluationCard::PRIMES[*rank_int as usize];
 
         let bitrank = 1 << rank_int << 16;
         let suit = suit_int << 12;
@@ -96,51 +94,59 @@ impl EvaluationCard{
         bitrank | suit | rank | rank_prime
     }
 
-    pub fn int_to_str(&self, card_int:i32) -> String {
-        let rank_int = self.get_rank_int(card_int);
-        let suit_int = self.get_suit_int(card_int);
+    fn generate_panic_string<T: Display>(key:&T, h_map:&str) -> String {
+        format!("This key: {} does not exist in {}", key, h_map)
+    }
 
-        let str_rank = self.STR_RANKS[rank_int as usize];
-        let char_suit = *self.INT_SUIT_TO_CHAR_SUIT().get(&suit_int).unwrap();
+    pub fn int_to_str(card_int:i32) -> String {
+        let rank_int = EvaluationCard::get_rank_int(card_int);
+        let suit_int = EvaluationCard::get_suit_int(card_int);
+
+        let str_rank = EvaluationCard::STR_RANKS[rank_int as usize];
+        let binding = EvaluationCard::INT_SUIT_TO_CHAR_SUIT();
+        let char_suit = *binding.get(&suit_int)
+            .expect(&EvaluationCard::generate_panic_string(&suit_int, "INT_SUIT_TO_CHAR_SUIT"));
 
         format!("{}{}", str_rank, char_suit)
     }
 
-    pub fn int_to_pretty_str(&self, card_int:i32) -> ColoredString {
-        let rank_int = self.get_rank_int(card_int);
-        let suit_int = self.get_suit_int(card_int);
+    pub fn int_to_pretty_str(card_int:i32) -> ColoredString {
+        let rank_int = EvaluationCard::get_rank_int(card_int);
+        let suit_int = EvaluationCard::get_suit_int(card_int);
 
-        let str_rank = self.STR_RANKS[rank_int as usize];
-        let char_suit = *self.INT_SUIT_TO_CHAR_SUIT().get(&suit_int).unwrap();
+        let str_rank = EvaluationCard::STR_RANKS[rank_int as usize];
+        let binding = EvaluationCard::INT_SUIT_TO_CHAR_SUIT();
+        let char_suit = *binding.get(&suit_int)
+            .expect(&EvaluationCard::generate_panic_string(&suit_int, "INT_SUIT_TO_CHAR_SUIT"));
 
         
 
-        if self.PRETTY_REDS.contains(&suit_int){
+        if EvaluationCard::PRETTY_REDS.contains(&suit_int){
             return format!("{}{}", str_rank, char_suit).red()
         } else{
-            return format!("{}{}", str_rank, char_suit).red()
+            return format!("{}{}", str_rank, char_suit).black()
         }
     }
 
-    fn get_rank_int(&self, card_int:i32) -> i32{
+    fn get_rank_int(card_int:i32) -> i32{
         (card_int >> 8) & 0xF
     }
 
-    fn get_suit_int(&self, card_int:i32) -> i32{
+    fn get_suit_int(card_int:i32) -> i32{
         (card_int >> 12) & 0xF
     }
 
 
-    fn print_pretty_card(&self, card_int:i32){
-        println!("{}", self.int_to_pretty_str(card_int));
+    fn print_pretty_card(card_int:i32){
+        println!("{}", EvaluationCard::int_to_pretty_str(card_int));
     }
 
-    pub fn print_pretty_cards(&self, card_ints:Vec<i32>){
+    pub fn print_pretty_cards(card_ints:Vec<i32>){
         let mut output = String::from(" ");
 
         for i in 0..card_ints.len(){
             let c = card_ints[i];
-            output.push_str(&self.int_to_pretty_str(c));
+            output.push_str(&EvaluationCard::int_to_pretty_str(c));
             if i != card_ints.len() - 1{
                 output.push_str(",");
             }else{
@@ -150,25 +156,25 @@ impl EvaluationCard{
 
         println!("{output}");
     }
-    fn get_bitrank_int(&self, card_int:i32) -> i32{
+    fn get_bitrank_int(card_int:i32) -> i32{
         (card_int >> 16) & 0x1FFF
     }
 
-    fn get_prme(&self, card_int:i32) -> i32{
+    fn get_prme(card_int:i32) -> i32{
         card_int & 0x3F
     }
 
-    fn hand_to_binary(&self, card_strs:Vec<&str>) -> Vec<i32>{
+    fn hand_to_binary(card_strs:Vec<&str>) -> Vec<i32>{
         let mut bhand = Vec::new();
 
         for c in card_strs{
-            bhand.push(self.new(c));
+            bhand.push(EvaluationCard::new(c));
         }
             
         bhand
     }
 
-    fn prime_product_from_hand(&self, card_ints: Vec<i32>) -> i32 {
+    fn prime_product_from_hand(card_ints: Vec<i32>) -> i32 {
         let mut product = 1;
         for c in card_ints {
             product *= c & 0xFF;
@@ -176,7 +182,7 @@ impl EvaluationCard{
         product
     }
 
-    pub fn prime_product_from_rankbits(&self, rankbits: i32) -> i32 {
+    pub fn prime_product_from_rankbits(rankbits: i32) -> i32 {
         // Returns the prime product using the bitrank (b)
         // bits of the hand. Each 1 in the sequence is converted
         // to the correct prime and multiplied in.
@@ -193,9 +199,9 @@ impl EvaluationCard{
         //                 +--------+--------+
 
         let mut product = 1;
-        for i in self.INT_RANKS{
+        for i in EvaluationCard::INT_RANKS{
             if (rankbits & (1 << i)) != 0{
-                product *= self.PRIMES[i as usize];
+                product *= EvaluationCard::PRIMES[i as usize];
             }
         }
         product
