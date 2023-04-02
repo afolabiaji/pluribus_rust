@@ -28,30 +28,40 @@ use std::io::{BufWriter, Write};
 pub struct LookupTable {
     flush_lookup: HashMap<u64, i32>,
     unsuited_lookup: HashMap<u64, i32>,
-    MAX_STRAIGHT_FLUSH:i32,
-    MAX_FOUR_OF_A_KIND:i32,
-    MAX_FULL_HOUSE:i32,
-    MAX_FLUSH:i32,
-    MAX_STRAIGHT:i32,
-    MAX_THREE_OF_A_KIND:i32,
-    MAX_TWO_PAIR:i32,
-    MAX_PAIR:i32,
-    MAX_HIGH_CARD:i32,
+    // MAX_STRAIGHT_FLUSH:i32,
+    // MAX_FOUR_OF_A_KIND:i32,
+    // MAX_FULL_HOUSE:i32,
+    // MAX_FLUSH:i32,
+    // MAX_STRAIGHT:i32,
+    // MAX_THREE_OF_A_KIND:i32,
+    // MAX_TWO_PAIR:i32,
+    // MAX_PAIR:i32,
+    // MAX_HIGH_CARD:i32,
 }
 
 impl LookupTable {
+    pub const MAX_STRAIGHT_FLUSH:i32 = 10;
+    pub const MAX_FOUR_OF_A_KIND:i32 = 166;
+    pub const MAX_FULL_HOUSE:i32 = 322;
+    pub const MAX_FLUSH:i32 = 1599;
+    pub const MAX_STRAIGHT:i32 = 1609;
+    pub const MAX_THREE_OF_A_KIND:i32 = 2467;
+    pub const MAX_TWO_PAIR:i32 = 3325;
+    pub const MAX_PAIR:i32 = 6185;
+    pub const MAX_HIGH_CARD:i32 = 7462;
+
     // conversion from int => string
-    pub fn MAX_TO_RANK_CLASS(&self) -> HashMap<i32, i32> {
+    pub fn MAX_TO_RANK_CLASS() -> HashMap<i32, i32> {
         HashMap::from([
-            (self.MAX_STRAIGHT_FLUSH, 1),  
-            (self.MAX_FOUR_OF_A_KIND, 2),  
-            (self.MAX_FULL_HOUSE, 3),  
-            (self.MAX_FLUSH, 4),  
-            (self.MAX_STRAIGHT, 5),  
-            (self.MAX_THREE_OF_A_KIND, 6),  
-            (self.MAX_TWO_PAIR, 7),  
-            (self.MAX_PAIR, 8),  
-            (self.MAX_HIGH_CARD, 9),  
+            (LookupTable::MAX_STRAIGHT_FLUSH, 1),  
+            (LookupTable::MAX_FOUR_OF_A_KIND, 2),  
+            (LookupTable::MAX_FULL_HOUSE, 3),  
+            (LookupTable::MAX_FLUSH, 4),  
+            (LookupTable::MAX_STRAIGHT, 5),  
+            (LookupTable::MAX_THREE_OF_A_KIND, 6),  
+            (LookupTable::MAX_TWO_PAIR, 7),  
+            (LookupTable::MAX_PAIR, 8),  
+            (LookupTable::MAX_HIGH_CARD, 9),  
         ])
     }
 
@@ -73,15 +83,6 @@ impl LookupTable {
         let lookup_table:LookupTable = LookupTable {
             flush_lookup: HashMap::new(),
             unsuited_lookup: HashMap::new(),
-            MAX_STRAIGHT_FLUSH : 10,
-            MAX_FOUR_OF_A_KIND : 166,
-            MAX_FULL_HOUSE : 322,
-            MAX_FLUSH : 1599,
-            MAX_STRAIGHT : 1609,
-            MAX_THREE_OF_A_KIND : 2467,
-            MAX_TWO_PAIR : 3325,
-            MAX_PAIR : 6185,
-            MAX_HIGH_CARD : 7462,
         };
         lookup_table.flushes();
         lookup_table.multiples();
@@ -112,7 +113,8 @@ impl LookupTable {
         // now we'll dynamically generate all the other
         // flushes (including straight flushes)
         let mut flushes = Vec::new();
-        let gen = LookupTable::get_lexographically_next_bit_sequence(int("0b11111", 2));
+        let intval = isize::from_str_radix("0b11111", 2).unwrap()
+        let gen = LookupTable::get_lexographically_next_bit_sequence(intval);
 
         // 1277 = number of high cards
         // 1277 + len(str_flushes) is number of hands with all cards unique rank
