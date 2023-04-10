@@ -1,5 +1,6 @@
 pub const DUMMY_AMOUNTS: [i32; 6] = [10, 100, 500, 1000, 5000, 10000];
 
+#[derive(Debug)]
 pub struct Call;
 impl std::fmt::Display for Call {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
@@ -7,6 +8,7 @@ impl std::fmt::Display for Call {
     }
 }
 
+#[derive(Debug)]
 pub struct Fold;
 impl std::fmt::Display for Fold {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
@@ -14,8 +16,9 @@ impl std::fmt::Display for Fold {
     }
 }
 
+#[derive(Debug)]
 pub struct Raise {
-    amount:i32
+    amount:u32
 }
 impl std::fmt::Display for Raise {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
@@ -23,37 +26,42 @@ impl std::fmt::Display for Raise {
     }
 }
 
-pub struct AbstractedRaise {
-    amounts: Vec<i32>,
-    amount: i32,
+#[derive(Debug)]
+struct AbstractedRaise {
+    amounts: Vec<u32>,
+    amount: u32,
 }
 
 impl AbstractedRaise {
-    fn new(allowed_amounts: Vec<i32>) -> Self {
+    fn new(allowed_amounts: Vec<u32>) -> Self {
         AbstractedRaise {
             amounts: allowed_amounts,
             amount: 0,
         }
     }
 
-    fn call(&mut self, amount: i32) -> Result<(), String> {
+    fn call(&mut self, amount: u32) -> Result<(), String> {
         if !self.amounts.contains(&amount) {
-            return Err(format!(
-                "Specified amount '{}' is not valid for this action abstraction, check 'allowed_amounts()' for more information",
+            Err(format!(
+                "Specified amount '{}' is not valid for this action \
+                 abstraction, check 'allowed_amounts()' for more information",
                 amount
-            ));
+            ))
+        } else {
+            self.amount = amount;
+            Ok(())
         }
-        self.amount = amount;
-        Ok(())
-    }
-
-    fn allowed_amounts(&self) -> &Vec<i32> {
-        &self.amounts
     }
 }
 
-impl std::fmt::Debug for AbstractedRaise {
+impl std::fmt::Display for AbstractedRaise {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "raise {}", self.amount)
+    }
+}
+
+impl AbstractedRaise {
+    fn allowed_amounts(&self) -> &Vec<u32> {
+        &self.amounts
     }
 }

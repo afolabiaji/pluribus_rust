@@ -25,7 +25,6 @@ use itertools::Itertools;
 
 
 
-
 pub struct LookupTable {
     flush_lookup: HashMap<i32, i32>,
     unsuited_lookup: HashMap<i32, i32>,
@@ -118,17 +117,17 @@ impl LookupTable {
             
             // if this flush matches perfectly any
             // straight flush, do not add it
-            let mut notSF: bool = true;
+            let mut not_sf: bool = true;
             for sf in &straight_flushes {
                 // if f XOR sf == 0, then bit pattern
                 // is same, and we should not add
                 if (f ^ sf) == 0 {
-                    notSF = false
+                    not_sf = false
                 };
             }
                 
 
-            if notSF {
+            if not_sf {
                 flushes.push(f)
             };
         }
@@ -211,14 +210,14 @@ impl LookupTable {
         for r in &backwards_ranks {
             let mut kickers = backwards_ranks.clone();
             kickers.remove(*r);
-            let gen = kickers.into_iter().combinations(2);
+            let gen = kickers.iter().combinations(2);
 
             for kickers in gen {
                 let c1 = kickers[0];
                 let c2 = kickers[1];
                 let product = EvaluationCard::PRIMES[*r].pow(3)
-                    * EvaluationCard::PRIMES[c1]
-                    * EvaluationCard::PRIMES[c2];
+                    * EvaluationCard::PRIMES[*c1]
+                    * EvaluationCard::PRIMES[*c2];
                 self.unsuited_lookup.insert(product, rank);
                 rank += 1;
             }
@@ -227,6 +226,24 @@ impl LookupTable {
         // 4) Two Pair
         rank = LookupTable::MAX_THREE_OF_A_KIND + 1;
 
+        let tpgen = backwards_ranks.iter().combinations(2);
+
+        for tp in tpgen {
+
+            let pair1 = tp[0];
+            let pair2 = tp[1];
+            let mut kickers = backwards_ranks.clone();
+            kickers.retain(|&x| x != *pair1 && x != *pair2);
+            for &kicker in kickers.iter() {
+
+                let product =
+                    EvaluationCard::PRIMES[*pair1].pow(2)
+                    * EvaluationCard::PRIMES[*pair2].pow(2)
+                    * EvaluationCard::PRIMES[kicker];
+                self.unsuited_lookup.insert(product, rank);
+                rank += 1;
+            }
+        }
         // 5) Pair
         let mut rank = LookupTable::MAX_TWO_PAIR + 1;
 
@@ -239,8 +256,7 @@ impl LookupTable {
             for kickers in kgen {
                 let (k1, k2, k3) = (kickers[0], kickers[1], kickers[2]);
                 let product = 
-                    EvaluationCard::PRIMES[*pairrank] 
-                    * EvaluationCard::PRIMES[*pairrank]
+                    EvaluationCard::PRIMES[*pairrank].pow(2)
                     * EvaluationCard::PRIMES[*k1] 
                     * EvaluationCard::PRIMES[*k2] 
                     * EvaluationCard::PRIMES[*k3];
