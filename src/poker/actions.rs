@@ -23,19 +23,37 @@ impl std::fmt::Display for Raise {
     }
 }
 
-// pub struct AbstractedRaise {
-//     amounts: [i32; 6],
-//     amount:Option<i32>
-// }
-// impl Default for AbstractedRaise {
-//     fn default() -> AbstractedRaise {
-//         AbstractedRaise {
-//             amounts: DUMMY_AMOUNTS,
-//         }
-//     }
-// }
-// impl std::fmt::Display for AbstractedRaise {
-//     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-//         write!(f, "raise {}", self.amount)
-//     }
-// }
+pub struct AbstractedRaise {
+    amounts: Vec<i32>,
+    amount: i32,
+}
+
+impl AbstractedRaise {
+    fn new(allowed_amounts: Vec<i32>) -> Self {
+        AbstractedRaise {
+            amounts: allowed_amounts,
+            amount: 0,
+        }
+    }
+
+    fn call(&mut self, amount: i32) -> Result<(), String> {
+        if !self.amounts.contains(&amount) {
+            return Err(format!(
+                "Specified amount '{}' is not valid for this action abstraction, check 'allowed_amounts()' for more information",
+                amount
+            ));
+        }
+        self.amount = amount;
+        Ok(())
+    }
+
+    fn allowed_amounts(&self) -> &Vec<i32> {
+        &self.amounts
+    }
+}
+
+impl std::fmt::Debug for AbstractedRaise {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "raise {}", self.amount)
+    }
+}
