@@ -1,6 +1,3 @@
-use std::collections::HashSet;
-use rand::seq::SliceRandom;
-
 use super::deck::Deck;
 use super::table::PokerTable;
 use super::player::Player;
@@ -18,7 +15,7 @@ impl Dealer {
     }
 
     pub fn deal_card(&mut self) -> Card {
-        self.deck.pick(random: true)
+        self.deck.pick(true)
     }
 
     pub fn deal_private_cards(&mut self, players: &mut Vec<Player>) {

@@ -1,12 +1,11 @@
 use rand::seq::SliceRandom;
 use rand::thread_rng;
-
+use rand::Rng;
 use crate::poker::card::Card;
 
 use std::vec::Vec;
 
-let hs = Card::get_all_suits();
-static DEFAULT_INCLUDE_SUITS: [&str] = Vec::from_iter(hs);
+static DEFAULT_INCLUDE_SUITS: &[&str] = &["spades", "diamonds", "clubs", "hearts"];
 static DEFAULT_INCLUDE_RANKS: &[i32] = &[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
 
 pub struct Deck {
@@ -17,13 +16,13 @@ pub struct Deck {
 }
 
 impl Deck {
-    pub fn new(include_suits: Option<Vec<&'static str>>, include_ranks: Option<Vec<i32>>) -> Deck {
-        let suits = include_suits.unwrap_or_else(|| DEFAULT_INCLUDE_SUITS.to_vec());
-        let ranks = include_ranks.unwrap_or_else(|| DEFAULT_INCLUDE_RANKS.to_vec());
+    pub fn new() -> Deck {
+        let suits = DEFAULT_INCLUDE_SUITS.to_vec();
+        let ranks = DEFAULT_INCLUDE_RANKS.to_vec();
         let mut cards_in_deck = Vec::new();
         for suit in suits.iter() {
             for rank in ranks.iter() {
-                cards_in_deck.push(Card::new(*rank, *suit));
+                cards_in_deck.push(Card::new(&rank.to_string(), &suit.to_string()));
             }
         }
         let mut rng = thread_rng();
@@ -44,7 +43,7 @@ impl Deck {
         self.cards_in_deck = Vec::new();
         for suit in self.include_suits.iter() {
             for rank in self.include_ranks.iter() {
-                self.cards_in_deck.push(Card::new(*rank, *suit));
+                self.cards_in_deck.push(Card::new(&rank.to_string(), &suit.to_string()));
             }
         }
         let mut rng = thread_rng();
@@ -57,7 +56,7 @@ impl Deck {
             panic!("Deck is empty - please use Deck::reset()");
         }
         let index = if random {
-            thread_rng().gen_range(0, self.cards_in_deck.len())
+            thread_rng().gen_range(0..self.cards_in_deck.len())
         } else {
             self.cards_in_deck.len() - 1
         };

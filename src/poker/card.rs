@@ -1,18 +1,19 @@
 use std::collections::HashSet;
-use std::cmp::{PartialEq, PartialOrd};
 use super::evaluation::eval_card::{
     EvaluationCard
 };
+use std::cmp::{PartialEq, PartialOrd, Eq};
 use std::hash::{Hash, Hasher};
 
-struct Card {
+#[derive(Clone, Eq)]
+pub struct Card {
     eval_card: i32,
     rank: i32,
     suit: String,
 }
 
 impl Card {
-    fn new(rank: &str, suit: &str) -> Self {
+    pub fn new(rank: &str, suit: &str) -> Self {
         let binding = rank.to_lowercase();
         let rank = binding.as_str();
         let rank = match rank {
@@ -146,6 +147,7 @@ impl PartialEq for Card {
         self.eval_card == other.eval_card
     }
 }
+
 
 impl Hash for Card {
     fn hash<H: Hasher>(&self, state: &mut H) {
