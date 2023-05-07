@@ -29,7 +29,7 @@ impl PokerTable {
         Self {
             players,
             total_n_chips_on_table,
-            pot,
+            pot.into(),
             dealer: Rc::new(Dealer::new(deck_kwargs)),
             community_cards: Vec::new(),
             n_games: 0,

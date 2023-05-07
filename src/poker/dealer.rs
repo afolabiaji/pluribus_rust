@@ -2,16 +2,23 @@ use super::deck::Deck;
 use super::table::PokerTable;
 use super::player::Player;
 use super::card::Card;
-
+use std::collections::HashMap;
 pub struct Dealer {
     deck: Deck,
 }
 
 impl Dealer {
-    pub fn new() -> Self {
-        Self {
-            deck: Deck::new(),
+    pub fn new(kwargs:Option<HashMap<String, String>>) -> Self {
+        if kwargs.is_some(){
+            Self {
+                deck: Deck::new(kwargs),
+            }
+        } else {
+            Self {
+                deck: Deck::new(),
+            }
         }
+        
     }
 
     pub fn deal_card(&mut self) -> Card {

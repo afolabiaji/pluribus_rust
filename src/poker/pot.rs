@@ -9,7 +9,7 @@ use std::hash::{Hash, Hasher};
 
 #[derive(Clone, Eq, PartialEq)]
 pub struct Pot {
-    pub pot: HashMap<Rc<Player>, i32>,
+    pub pot: HashMap<String, i32>,
     pub uid: String,
 }
 
@@ -21,20 +21,20 @@ impl Pot {
         }
     }
 
-    pub fn add_chips(&mut self, player: Rc<Player>, n_chips: i32) {
-        *self.pot.entry(player).or_insert(0) += n_chips;
+    pub fn add_chips(&mut self, player: &String, n_chips: i32) {
+        *self.pot.entry(*player).or_insert(0) += n_chips;
     }
 
     pub fn reset(&mut self) {
         self.pot.clear();
     }
 
-    pub fn side_pots(&self) -> Vec<HashMap<Player, i32>> {
+    pub fn side_pots(&self) -> Vec<HashMap<String, i32>> {
         let mut side_pots = Vec::new();
         if self.pot.is_empty() {
             return side_pots;
         }
-        let mut pot: HashMap<Player, i32> = self.pot.clone();
+        let mut pot: HashMap<String, i32> = self.pot.clone();
         while !pot.is_empty() {
             side_pots.push(HashMap::new());
             let min_n_chips = *pot.values().min().unwrap();
@@ -61,7 +61,7 @@ impl Pot {
         self.pot.values().sum()
     }
 
-    pub fn get_contribution(&self, player: Rc<Player>) -> i32 {
+    pub fn get_contribution(&self, player: &String) -> i32 {
         match self.pot.get(player) {
             Some(n_chips) => *n_chips,
             None => 0,

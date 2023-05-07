@@ -1,5 +1,6 @@
 use uuid::Uuid;
 
+use std::cell::RefCell;
 use std::rc::Rc;
 use super::actions::{Action, Call, Fold, Raise};
 use super::card::Card;
@@ -14,8 +15,8 @@ pub struct Player {
     pub name: String,
     pub n_chips: i32,
     pub cards: Vec<Card>,
-    pub id: u128,
-    pub pot: Rc<Pot>,
+    pub id: String,
+    pub pot: RefCell<Pot>,
     pub order: Option<usize>,
     pub is_small_blind: bool,
     pub is_big_blind: bool,
@@ -30,8 +31,8 @@ impl Player {
             n_chips: initial_chips,
             cards: Vec::new(),
             _is_active: true,
-            id: Uuid::new_v4().as_u128(),
-            pot.into(),
+            id: Uuid::new_v4().simple().to_string(),
+            pot: pot.into(),
             order: None,
             is_small_blind: false,
             is_big_blind: false,
@@ -83,7 +84,8 @@ impl Player {
             panic!("Can not subtract chips from pot.")
         }
         let n_chips = self.try_to_make_full_bet(n_chips);
-        self.pot.add_chips(self, n_chips);
+        let mut mutable_pot = self.pot.borrow_mut();
+        mutable_pot.add_chips(&self.id, n_chips);
         self.n_chips -= n_chips;
         n_chips
     }
@@ -113,7 +115,8 @@ impl Player {
 
     pub fn n_bet_chips(&self) -> i32 {
         // Returns the n_chips this player has bet so far.
-        *self.pot.pot.get(self).unwrap()
+        let borrowed_pot = *self.pot.borrow();
+        *borrowed_pot.pot.get(&self.id).unwrap()
     }
 }
 
