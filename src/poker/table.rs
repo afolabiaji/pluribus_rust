@@ -1,5 +1,8 @@
 use std::collections::HashMap;
 use std::rc::Rc;
+use std::cell::RefCell;
+use std::ptr;
+
 use crate::poker::card::Card;
 use crate::poker::dealer::Dealer;
 use crate::poker::player::Player;
@@ -15,22 +18,26 @@ pub struct PokerTable {
 }
 
 impl PokerTable {
-    pub fn new(players: Vec<Rc<Player>>, pot: Rc<Pot>, deck_kwargs: HashMap<String, String>) -> Self {
+    pub fn new(players: Vec<Rc<Player>>, pot: Rc<Pot>, include_suits:Option<Vec<&'static str>>, include_ranks:Option<Vec<i32>>) -> Self {
         let total_n_chips_on_table = players.iter().map(|p| p.n_chips).sum();
 
         if players.len() < 2 {
             panic!("Must be at least two players on the table.");
         }
 
-        if !players.iter().all(|p| p.pot.uid == pot.uid) {
+        if !players.iter().all(|p|{
+            let borrowed_pot_from_player = p.pot.borrow();
+            let borrowed_pot_rc = Rc::clone(&pot);
+            borrowed_pot_rc.uid == borrowed_pot_from_player.uid
+        }) {
             panic!("Players and table point to different pots.");
         }
 
         Self {
             players,
             total_n_chips_on_table,
-            pot.into(),
-            dealer: Rc::new(Dealer::new(deck_kwargs)),
+            pot: pot.clone(),
+            dealer: Rc::new(Dealer::new(include_suits, include_ranks)),
             community_cards: Vec::new(),
             n_games: 0,
         }
@@ -43,7 +50,11 @@ impl PokerTable {
     pub fn set_players(&mut self, players: Vec<Rc<Player>>) {
         self.players = players;
 
-        if !self.players.iter().all(|p| p.pot.uid == self.pot.uid) {
+        if !self.players.iter().all(|p|{
+            let borrowed_pot_from_player = p.pot.borrow();
+            let borrowed_pot_rc = Rc::clone(&self.pot);
+            borrowed_pot_rc.uid == borrowed_pot_from_player.uid
+        }){
             panic!("Players and table point to different pots.");
         }
     }

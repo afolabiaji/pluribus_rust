@@ -8,17 +8,10 @@ pub struct Dealer {
 }
 
 impl Dealer {
-    pub fn new(kwargs:Option<HashMap<String, String>>) -> Self {
-        if kwargs.is_some(){
-            Self {
-                deck: Deck::new(kwargs),
-            }
-        } else {
-            Self {
-                deck: Deck::new(),
-            }
-        }
-        
+    pub fn new(include_suits:Option<Vec<&'static str>>, include_ranks:Option<Vec<i32>>) -> Self {
+        Self {
+            deck: Deck::new(include_suits, include_ranks),
+        }   
     }
 
     pub fn deal_card(&mut self) -> Card {
@@ -27,7 +20,7 @@ impl Dealer {
 
     pub fn deal_private_cards(&mut self, players: &mut Vec<Player>) {
         for _ in 0..2 {
-            for player in players {
+            for player in &mut *players {
                 let card = self.deal_card();
                 player.add_private_card(card);
             }

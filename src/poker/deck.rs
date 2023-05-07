@@ -5,8 +5,7 @@ use crate::poker::card::Card;
 
 use std::vec::Vec;
 
-static DEFAULT_INCLUDE_SUITS: &[&str] = &["spades", "diamonds", "clubs", "hearts"];
-static DEFAULT_INCLUDE_RANKS: &[i32] = &[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
+
 
 pub struct Deck {
     include_suits: Vec<&'static str>,
@@ -15,10 +14,13 @@ pub struct Deck {
     dealt_cards: Vec<Card>,
 }
 
-impl Deck {
-    pub fn new() -> Deck {
-        let suits = DEFAULT_INCLUDE_SUITS.to_vec();
-        let ranks = DEFAULT_INCLUDE_RANKS.to_vec();
+impl Deck  {
+    pub const DEFAULT_INCLUDE_SUITS: [&'static str; 4] = ["spades", "diamonds", "clubs", "hearts"];
+    pub const DEFAULT_INCLUDE_RANKS: [i32; 13] = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
+
+    pub fn new(include_suits_kw:Option<Vec<&'static str>>, include_ranks_kw:Option<Vec<i32>>) -> Deck {
+        let suits = Deck::DEFAULT_INCLUDE_SUITS.to_vec();
+        let ranks = Deck::DEFAULT_INCLUDE_RANKS.to_vec();
         let mut cards_in_deck = Vec::new();
         for suit in suits.iter() {
             for rank in ranks.iter() {
@@ -28,8 +30,8 @@ impl Deck {
         let mut rng = thread_rng();
         cards_in_deck.shuffle(&mut rng);
         Deck {
-            include_suits: suits,
-            include_ranks: ranks,
+            include_suits: include_suits_kw.unwrap_or(suits),
+            include_ranks: include_ranks_kw.unwrap_or(ranks),
             cards_in_deck,
             dealt_cards: Vec::new(),
         }

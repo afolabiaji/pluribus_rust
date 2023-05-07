@@ -2,7 +2,7 @@ use super::table::PokerTable;
 use std::fmt;
 use std::rc::Rc;
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct PokerGameState {
     previous_state: Option<Rc<PokerGameState>>,
     table: Rc<PokerTable>,
@@ -23,7 +23,7 @@ impl PokerGameState {
     }
 
     pub fn table(&self) -> Rc<PokerTable> {
-        self.table
+        Rc::clone(&self.table)
     }
 
     pub fn is_terminal(&self) -> bool {

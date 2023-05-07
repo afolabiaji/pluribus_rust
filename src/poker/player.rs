@@ -72,7 +72,7 @@ impl Player {
         Box::new(raise_action)
     }
 
-    fn try_to_make_full_bet(&mut self, n_chips: i32) -> i32 {
+    fn try_to_make_full_bet(&mut self, mut n_chips: i32) -> i32 {
         if self.n_chips - n_chips < 0 {
             n_chips = self.n_chips;
         }
@@ -115,7 +115,7 @@ impl Player {
 
     pub fn n_bet_chips(&self) -> i32 {
         // Returns the n_chips this player has bet so far.
-        let borrowed_pot = *self.pot.borrow();
+        let borrowed_pot = self.pot.borrow();
         *borrowed_pot.pot.get(&self.id).unwrap()
     }
 }

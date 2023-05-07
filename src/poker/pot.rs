@@ -22,7 +22,7 @@ impl Pot {
     }
 
     pub fn add_chips(&mut self, player: &String, n_chips: i32) {
-        *self.pot.entry(*player).or_insert(0) += n_chips;
+        *self.pot.entry(player.to_string()).or_insert(0) += n_chips;
     }
 
     pub fn reset(&mut self) {
