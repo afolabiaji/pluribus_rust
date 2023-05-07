@@ -1,5 +1,6 @@
 use uuid::Uuid;
 
+use std::rc::Rc;
 use super::actions::{Action, Call, Fold, Raise};
 use super::card::Card;
 use super::pot::Pot;
@@ -14,7 +15,7 @@ pub struct Player {
     pub n_chips: i32,
     pub cards: Vec<Card>,
     pub id: u128,
-    pub pot: Pot,
+    pub pot: Rc<Pot>,
     pub order: Option<usize>,
     pub is_small_blind: bool,
     pub is_big_blind: bool,
@@ -30,7 +31,7 @@ impl Player {
             cards: Vec::new(),
             _is_active: true,
             id: Uuid::new_v4().as_u128(),
-            pot,
+            pot.into(),
             order: None,
             is_small_blind: false,
             is_big_blind: false,

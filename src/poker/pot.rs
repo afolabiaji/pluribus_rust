@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::rc::Rc;
 use uuid::Uuid;
 
 use super::player::Player;
@@ -8,8 +9,8 @@ use std::hash::{Hash, Hasher};
 
 #[derive(Clone, Eq, PartialEq)]
 pub struct Pot {
-    pub pot: HashMap<Player, i32>,
-    uid: String,
+    pub pot: HashMap<Rc<Player>, i32>,
+    pub uid: String,
 }
 
 impl Pot {
@@ -20,8 +21,8 @@ impl Pot {
         }
     }
 
-    pub fn add_chips(&mut self, player: &Player, n_chips: i32) {
-        *self.pot.entry(player.clone()).or_insert(0) += n_chips;
+    pub fn add_chips(&mut self, player: Rc<Player>, n_chips: i32) {
+        *self.pot.entry(player).or_insert(0) += n_chips;
     }
 
     pub fn reset(&mut self) {
@@ -60,7 +61,7 @@ impl Pot {
         self.pot.values().sum()
     }
 
-    pub fn get_contribution(&self, player: &Player) -> i32 {
+    pub fn get_contribution(&self, player: Rc<Player>) -> i32 {
         match self.pot.get(player) {
             Some(n_chips) => *n_chips,
             None => 0,

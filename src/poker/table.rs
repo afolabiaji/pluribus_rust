@@ -1,21 +1,21 @@
 use std::collections::HashMap;
-
+use std::rc::Rc;
 use crate::poker::card::Card;
 use crate::poker::dealer::Dealer;
 use crate::poker::player::Player;
 use crate::poker::pot::Pot;
 
-pub struct PokerTable<'a> {
-    players: Vec<&'a mut Player<'a>>,
+pub struct PokerTable {
+    players: Vec<Rc<Player>>,
     total_n_chips_on_table: i32,
-    pot: &'a mut Pot<'a>,
-    dealer: Dealer<'a>,
+    pot: Rc<Pot>,
+    dealer: Rc<Dealer>,
     community_cards: Vec<Card>,
     n_games: i32,
 }
 
-impl<'a> PokerTable<'a> {
-    pub fn new(players: Vec<&'a mut Player<'a>>, pot: &'a mut Pot<'a>, deck_kwargs: HashMap<String, String>) -> Self {
+impl PokerTable {
+    pub fn new(players: Vec<Rc<Player>>, pot: Rc<Pot>, deck_kwargs: HashMap<String, String>) -> Self {
         let total_n_chips_on_table = players.iter().map(|p| p.n_chips).sum();
 
         if players.len() < 2 {
@@ -30,7 +30,7 @@ impl<'a> PokerTable<'a> {
             players,
             total_n_chips_on_table,
             pot,
-            dealer: Dealer::new(deck_kwargs),
+            dealer: Rc::new(Dealer::new(deck_kwargs)),
             community_cards: Vec::new(),
             n_games: 0,
         }
@@ -40,7 +40,7 @@ impl<'a> PokerTable<'a> {
         self.players.len()
     }
 
-    pub fn set_players(&mut self, players: Vec<&'a mut Player<'a>>) {
+    pub fn set_players(&mut self, players: Vec<Rc<Player>>) {
         self.players = players;
 
         if !self.players.iter().all(|p| p.pot.uid == self.pot.uid) {

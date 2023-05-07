@@ -1,17 +1,18 @@
-use super::PokerTable;
+use super::table::PokerTable;
 use std::fmt;
+use std::rc::Rc;
 
 #[derive(Debug, Clone)]
-pub struct PokerGameState<'a> {
-    previous_state: Option<&'a PokerGameState<'a>>,
-    table: &'a PokerTable,
+pub struct PokerGameState {
+    previous_state: Option<Rc<PokerGameState>>,
+    table: Rc<PokerTable>,
     player: Option<usize>,
-    action: Option<&'a str>,
+    action: Option<String>,
     is_terminal: bool,
 }
 
-impl<'a> PokerGameState<'a> {
-    pub fn new_hand(table: &'a PokerTable) -> Self {
+impl PokerGameState {
+    pub fn new_hand(table: Rc<PokerTable>) -> Self {
         PokerGameState {
             previous_state: None,
             table,
@@ -21,7 +22,7 @@ impl<'a> PokerGameState<'a> {
         }
     }
 
-    pub fn table(&self) -> &'a PokerTable {
+    pub fn table(&self) -> Rc<PokerTable> {
         self.table
     }
 
