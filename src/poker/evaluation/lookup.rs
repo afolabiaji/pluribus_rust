@@ -24,7 +24,17 @@ use std::io::{BufWriter, Write};
 use itertools::Itertools;
 
 
-
+pub enum MaxHand {
+    StraightFlush,
+    FourOfAKind,
+    FullHouse,
+    Flush,
+    Straight,
+    ThreeOfAKind,
+    TwoPair,
+    OnePair,
+    HighCard,
+}
 pub struct LookupTable {
     flush_lookup: HashMap<i32, i32>,
     unsuited_lookup: HashMap<i32, i32>,
@@ -42,18 +52,18 @@ impl LookupTable {
     pub const MAX_HIGH_CARD:i32 = 7462;
 
     // conversion from int => string
-    pub fn MAX_TO_RANK_CLASS() -> HashMap<i32, i32> {
-        HashMap::from([
-            (LookupTable::MAX_STRAIGHT_FLUSH, 1),  
-            (LookupTable::MAX_FOUR_OF_A_KIND, 2),  
-            (LookupTable::MAX_FULL_HOUSE, 3),  
-            (LookupTable::MAX_FLUSH, 4),  
-            (LookupTable::MAX_STRAIGHT, 5),  
-            (LookupTable::MAX_THREE_OF_A_KIND, 6),  
-            (LookupTable::MAX_TWO_PAIR, 7),  
-            (LookupTable::MAX_PAIR, 8),  
-            (LookupTable::MAX_HIGH_CARD, 9),  
-        ])
+    pub fn MAX_TO_RANK_CLASS(rank: MaxHand) -> i32 {
+        match rank {
+            MaxHand::StraightFlush => 1,
+            MaxHand::FourOfAKind => 2,
+            MaxHand::FullHouse => 3,
+            MaxHand::Flush => 4,
+            MaxHand::Straight => 5,
+            MaxHand::ThreeOfAKind => 6,
+            MaxHand::TwoPair => 7,
+            MaxHand::OnePair => 8,
+            MaxHand::HighCard => 9
+        }
     }
 
     pub fn RANK_CLASS_TO_STRING(&self) -> HashMap<i32, &'static str> {
