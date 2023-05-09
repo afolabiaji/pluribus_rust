@@ -12,7 +12,7 @@ pub struct PokerTable {
     players: Vec<Rc<Player>>,
     total_n_chips_on_table: i32,
     pot: Rc<Pot>,
-    dealer: Rc<Dealer>,
+    dealer: RefCell<Dealer>,
     community_cards: Vec<Card>,
     n_games: i32,
 }
@@ -37,7 +37,7 @@ impl PokerTable {
             players,
             total_n_chips_on_table,
             pot: pot.clone(),
-            dealer: Rc::new(Dealer::new(include_suits, include_ranks)),
+            dealer: RefCell::new(Dealer::new(include_suits, include_ranks)),
             community_cards: Vec::new(),
             n_games: 0,
         }

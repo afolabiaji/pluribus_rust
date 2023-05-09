@@ -12,7 +12,7 @@ use super::table::PokerTable;
 use log::debug;
 
 pub struct PokerEngine {
-    table: Rc<PokerTable>,
+    table: RefCell<PokerTable>,
     small_blind: i32,
     big_blind: i32,
     evaluator: Evaluator,
@@ -49,11 +49,11 @@ impl PokerEngine {
         let players = &self.table.players;
         Dealer::deal_private_cards(players);
         self.betting_round(true);
-        self.table.dealer.borrow_mut().deal_flop(Rc::clone(&self.table));
+        self.table.dealer.borrow_mut().deal_flop(RefCell::clone(&self.table));
         self.betting_round(false);
-        self.table.dealer.borrow_mut().deal_turn(Rc::clone(&self.table));
+        self.table.dealer.borrow_mut().deal_turn(RefCell::clone(&self.table));
         self.betting_round(false);
-        self.table.dealer.borrow_mut().deal_river(Rc::clone(&self.table));
+        self.table.dealer.borrow_mut().deal_river(RefCell::clone(&self.table));
         self.betting_round(false);
     }
 
@@ -82,12 +82,14 @@ impl PokerEngine {
         players_in_pot
     }
 
-    fn process_side_pot(&self, player_group: &[Rc<Player>], pot: &SidePot) -> HashMap<Rc<Player>, i32> {
-        let mut payouts = HashMap::new();
-        let players_in_pot = self.get_players_in_pot(player_group, pot);
-        let n_players = players_in_pot.len();
-        if n_players == 0 {
-            return payouts;
-        }
-        let n_total = pot.total();
-        let
+    // fn process_side_pot(&self, player_group: &[Rc<Player>], pot: &SidePot) -> HashMap<Rc<Player>, i32> {
+    //     let mut payouts = HashMap::new();
+    //     let players_in_pot = self.get_players_in_pot(player_group, pot);
+    //     let n_players = players_in_pot.len();
+    //     if n_players == 0 {
+    //         return payouts;
+    //     }
+    //     let n_total = pot.total();
+    //     let
+    // }
+}

@@ -36,8 +36,8 @@ pub enum MaxHand {
     HighCard,
 }
 pub struct LookupTable {
-    flush_lookup: HashMap<i32, i32>,
-    unsuited_lookup: HashMap<i32, i32>,
+    pub flush_lookup: HashMap<i32, i32>,
+    pub unsuited_lookup: HashMap<i32, i32>,
 }
 
 impl LookupTable {

@@ -174,7 +174,7 @@ impl EvaluationCard{
         bhand
     }
 
-    fn prime_product_from_hand(card_ints: Vec<i32>) -> i32 {
+    pub fn prime_product_from_hand(card_ints: Vec<i32>) -> i32 {
         let mut product = 1;
         for c in card_ints {
             product *= c & 0xFF;
