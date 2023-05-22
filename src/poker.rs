@@ -7,3 +7,4 @@ pub mod table;
 pub mod player;
 pub mod pot;
 pub mod state;
+pub mod engine;

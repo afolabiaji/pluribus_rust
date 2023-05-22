@@ -8,7 +8,6 @@
 
 use itertools::Itertools;
 
-use std::rc::Rc;
 use super::super::card::Card;
 
 use super::lookup::{
@@ -23,7 +22,7 @@ enum HandSize {
     Seven
 }
 
-struct Evaluator{
+pub struct Evaluator{
     table: LookupTable,
 }
 
@@ -34,7 +33,7 @@ impl Evaluator {
         }
     }
 
-    pub fn evaluate(&self, cards:Vec<Card>, board:Vec<Card>) -> i32{
+    pub fn evaluate(&self, cards:&Vec<Card>, board:&Vec<Card>) -> i32{
         let all_cards: Vec<i32> = cards.iter()
             .chain(board.iter())
             .map(|card| (*card).into())
@@ -111,8 +110,11 @@ impl Evaluator {
             panic!("Inavlid hand rank, cannot return rank class")
         }
     }
+    pub fn class_to_string(&self, class_int: i32) -> &'static str {
+        LookupTable::RANK_CLASS_TO_STRING(class_int)
+    }
 
-    pub fn get_five_card_rank_percentage(&self, hand_rank: usize) -> f32 {
+    pub fn get_five_card_rank_percentage(&self, hand_rank: i32) -> f32 {
         hand_rank as f32 / LookupTable::MAX_HIGH_CARD as f32
     }
     
@@ -132,7 +134,7 @@ impl Evaluator {
             let mut best_rank = 7463;
             let mut winners = vec![];
             for (player, hand) in hands.iter().enumerate() {
-                let rank = self.evaluate(hand, &board[..(i + 3)]);
+                let rank = self.evaluate(hand, &board[..(i + 3)].to_vec());
                 let rank_class = self.get_rank_class(rank);
                 let class_string = self.class_to_string(rank_class);
                 let percentage =
@@ -170,7 +172,7 @@ impl Evaluator {
             // otherwise on all other streets
             } else {
                 let hand_result = self.class_to_string(
-                    self.get_rank_class(self.evaluate(&hands[winners[0]], board))
+                    self.get_rank_class(self.evaluate(&hands[winners[0]], &board.to_vec()))
                 );
                 println!();
                 println!("{} HAND OVER {}", line, line);

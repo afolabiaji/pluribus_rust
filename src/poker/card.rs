@@ -7,7 +7,7 @@ use std::hash::{Hash, Hasher};
 
 #[derive(Clone, Eq)]
 pub struct Card {
-    eval_card: i32,
+    pub eval_card: i32,
     rank: i32,
     suit: String,
 }

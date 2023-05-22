@@ -66,18 +66,18 @@ impl LookupTable {
         }
     }
 
-    pub fn RANK_CLASS_TO_STRING(&self) -> HashMap<i32, &'static str> {
-        HashMap::from([
-            (1, "Straight Flush"),
-            (2, "Four of a Kind"),
-            (3, "Full House"),
-            (4, "Flush"),
-            (5, "Straight"),
-            (6, "Three of a Kind"),
-            (7, "Two Pair"),
-            (8, "Pair"),
-            (9, "High Card"),
-        ])
+    pub fn RANK_CLASS_TO_STRING(class_int:i32) -> &'static str {
+        match class_int {
+            1 => "Straight Flush",
+            2 => "Four of a Kind",
+            3 => "Full House",
+            4 => "Flush",
+            5 => "Straight",
+            6 => "Three of a Kind",
+            7 => "Two Pair",
+            8 => "Pair",
+            9 => "High Card",
+        }
     }
     
     pub fn new() -> LookupTable {
