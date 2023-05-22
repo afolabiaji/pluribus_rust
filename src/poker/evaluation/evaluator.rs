@@ -116,6 +116,10 @@ impl Evaluator {
         hand_rank as f32 / LookupTable::MAX_HIGH_CARD as f32
     }
     
+    fn class_to_string(&self, class_int:i32) -> &'static str {
+        LookupTable::RANK_CLASS_TO_STRING(class_int)
+    }
+
     pub fn hand_summary(&self, board: &[Card], hands: &[Vec<Card>]) {
         assert_eq!(board.len(), 5, "Invalid board length");
         for hand in hands {
