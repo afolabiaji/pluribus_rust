@@ -1,12 +1,15 @@
 use super::table::PokerTable;
+use super::player::Player;
+
 use std::fmt;
 use std::rc::Rc;
+use std::cell::RefCell;
 
 #[derive(Clone)]
 pub struct PokerGameState {
     previous_state: Option<Rc<PokerGameState>>,
     table: Rc<PokerTable>,
-    player: Option<usize>,
+    player: Option<Rc<Player>>,
     action: Option<String>,
     is_terminal: bool,
 }
@@ -34,18 +37,18 @@ impl PokerGameState {
         false
     }
 
-    pub fn current_player(&self) -> Option<usize> {
+    pub fn current_player(&self) -> Option<Rc<Player>> {
         self.player
     }
 
-    pub fn utility(&self, winner_i: usize) -> Vec<f64> {
-        if self.is_terminal {
-            let mut utility = vec![-1.0; self.table.n_players()];
-            utility[winner_i] = 1.0;
-            utility
-        } else {
-            vec![0.0; self.table.n_players()]
-        }
-    }
+    // pub fn utility(&self, winner_i: Rc<Player>) -> Vec<f64> {
+    //     if self.is_terminal {
+    //         let mut utility = vec![-1.0; self.table.n_players()];
+    //         utility[winner_i] = 1.0;
+    //         utility
+    //     } else {
+    //         vec![0.0; self.table.n_players()]
+    //     }
+    // }
 }
 

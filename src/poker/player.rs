@@ -1,7 +1,6 @@
 use uuid::Uuid;
 
 use std::cell::RefCell;
-use std::rc::Rc;
 use super::actions::{Action, Call, Fold, Raise};
 use super::card::Card;
 use super::pot::Pot;
@@ -9,6 +8,8 @@ use super::state::PokerGameState;
 
 use std::cmp::{PartialEq, Eq};
 use std::hash::{Hash, Hasher};
+use std::fmt;
+
 
 #[derive(Clone, Eq, PartialEq)]
 pub struct Player {
@@ -123,5 +124,16 @@ impl Player {
 impl Hash for Player {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.id.hash(state);
+    }
+}
+
+impl fmt::Display for Player {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let folded = !self.is_active();
+        write!(
+            f,
+            "<Player name=\"{}\" n_chips={:05} n_bet_chips={:05} folded={}>",
+            self.name, self.n_chips, self.n_bet_chips(), folded
+        )
     }
 }

@@ -66,8 +66,8 @@ impl LookupTable {
         }
     }
 
-    pub fn RANK_CLASS_TO_STRING(rank_class:i32) -> &'static str {
-        match rank_class {
+    pub fn RANK_CLASS_TO_STRING(class_int:i32) -> &'static str {
+        match class_int {
             1 => "Straight Flush",
             2 => "Four of a Kind",
             3 => "Full House",

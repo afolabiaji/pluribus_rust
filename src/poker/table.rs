@@ -9,24 +9,24 @@ use crate::poker::player::Player;
 use crate::poker::pot::Pot;
 
 pub struct PokerTable {
-    players: Vec<Rc<Player>>,
-    total_n_chips_on_table: i32,
-    pot: Rc<Pot>,
-    dealer: RefCell<Dealer>,
-    community_cards: Vec<Card>,
-    n_games: i32,
+    pub players: Vec<RefCell<Player>>,
+    pub total_n_chips_on_table: i32,
+    pub pot: Rc<Pot>,
+    pub dealer: RefCell<Dealer>,
+    pub community_cards: Vec<Card>,
+    pub n_games: i32,
 }
 
 impl PokerTable {
-    pub fn new(players: Vec<Rc<Player>>, pot: Rc<Pot>, include_suits:Option<Vec<&'static str>>, include_ranks:Option<Vec<i32>>) -> Self {
-        let total_n_chips_on_table = players.iter().map(|p| p.n_chips).sum();
+    pub fn new(players: Vec<RefCell<Player>>, pot: Rc<Pot>, include_suits:Option<Vec<&'static str>>, include_ranks:Option<Vec<i32>>) -> Self {
+        let total_n_chips_on_table = players.iter().map(|p|(*p.borrow()).n_chips).sum();
 
         if players.len() < 2 {
             panic!("Must be at least two players on the table.");
         }
 
         if !players.iter().all(|p|{
-            let borrowed_pot_from_player = p.pot.borrow();
+            let borrowed_pot_from_player = (*p.borrow()).pot.borrow();
             let borrowed_pot_rc = Rc::clone(&pot);
             borrowed_pot_rc.uid == borrowed_pot_from_player.uid
         }) {
@@ -47,11 +47,11 @@ impl PokerTable {
         self.players.len()
     }
 
-    pub fn set_players(&mut self, players: Vec<Rc<Player>>) {
+    pub fn set_players(&mut self, players: Vec<RefCell<Player>>) {
         self.players = players;
 
         if !self.players.iter().all(|p|{
-            let borrowed_pot_from_player = p.pot.borrow();
+            let borrowed_pot_from_player = (*p.borrow()).pot.borrow();
             let borrowed_pot_rc = Rc::clone(&self.pot);
             borrowed_pot_rc.uid == borrowed_pot_from_player.uid
         }){
@@ -64,7 +64,7 @@ impl PokerTable {
     }
 
     pub fn __repr__(&self) -> String {
-        let player_names: Vec<&str> = self.players.iter().map(|p| p.name.as_str()).collect();
+        let player_names: Vec<&str> = self.players.iter().map(|p| (*p.borrow()).name.as_str()).collect();
         format!("<PokerTable players={:?}>", player_names)
     }
 }
