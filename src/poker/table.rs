@@ -18,7 +18,7 @@ pub struct PokerTable {
 }
 
 impl PokerTable {
-    pub fn new(players: Vec<Rc<RefCell<Player>>>, pot: Rc<RefCell<Pot>>, include_suits:Option<Vec<&'static str>>, include_ranks:Option<Vec<i32>>) -> Self {
+    pub fn new(players: &Vec<Rc<RefCell<Player>>>, pot: Rc<RefCell<Pot>>, include_suits:Option<Vec<&'static str>>, include_ranks:Option<Vec<i32>>) -> Self {
         let total_n_chips_on_table = players.iter().map(|p|(*p.borrow()).n_chips).sum();
 
         if players.len() < 2 {
@@ -26,9 +26,10 @@ impl PokerTable {
         }
 
         if !players.iter().all(|p|{
-            let borrowed_pot_from_player = (*p.borrow()).pot.borrow();
-            let borrowed_pot_rc = Rc::clone(&pot);
-            borrowed_pot_rc.uid == borrowed_pot_from_player.uid
+            let player = p.borrow_mut();
+            let pot_ref = pot.borrow_mut();
+            let borrowed_pot_from_player = player.pot.borrow_mut();
+            pot_ref.uid == borrowed_pot_from_player.uid
         }) {
             panic!("Players and table point to different pots.");
         }
@@ -36,7 +37,7 @@ impl PokerTable {
         let new_dealer_refcell = RefCell::new(Dealer::new(include_suits, include_ranks));
         let new_dealer_rc = Rc::new(new_dealer_refcell);
         Self {
-            players,
+            players: (*players).clone(),
             total_n_chips_on_table,
             pot: pot.clone(),
             dealer: new_dealer_rc,
@@ -53,9 +54,11 @@ impl PokerTable {
         self.players = players;
 
         if !self.players.iter().all(|p|{
-            let borrowed_pot_from_player = (*p.borrow()).pot.borrow();
-            let borrowed_pot_rc = Rc::clone(&self.pot);
-            borrowed_pot_rc.uid == borrowed_pot_from_player.uid
+            let player = p.borrow_mut();
+            let pot_ref = self.pot.borrow_mut();
+            let borrowed_pot_from_player = player.pot.borrow();
+
+            pot_ref.uid == borrowed_pot_from_player.uid
         }){
             panic!("Players and table point to different pots.");
         }
@@ -66,7 +69,10 @@ impl PokerTable {
     }
 
     pub fn __repr__(&self) -> String {
-        let player_names: Vec<&str> = self.players.iter().map(|p| (*p.borrow()).name.as_str()).collect();
+        let player_names: Vec<String> = self.players.iter().map(|p| {
+            let player = p.borrow();
+            player.name.clone()
+        }).collect();
         format!("<PokerTable players={:?}>", player_names)
     }
 }

@@ -38,7 +38,7 @@ impl PokerGameState {
     }
 
     pub fn current_player(&self) -> Option<Rc<Player>> {
-        self.player
+        self.player.clone()
     }
 
     // pub fn utility(&self, winner_i: Rc<Player>) -> Vec<f64> {

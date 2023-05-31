@@ -36,13 +36,14 @@ impl Evaluator {
     pub fn evaluate(&self, cards:&Vec<Card>, board:&Vec<Card>) -> i32{
         let all_cards: Vec<i32> = cards.iter()
             .chain(board.iter())
-            .map(|card| (*card).into())
+            .map(|card| card.clone().into())
             .collect();
 
         match all_cards.len() {
             5 => self._five(all_cards),
             6 => self._six(all_cards),
             7 => self._seven(all_cards),
+            _ => panic!("number of cards on table is not 5, 6 or 7")
         }
     }
 

@@ -77,6 +77,7 @@ impl LookupTable {
             7 => "Two Pair",
             8 => "Pair",
             9 => "High Card",
+            _ => panic!("class int not in dictionary")
         }
     }
     

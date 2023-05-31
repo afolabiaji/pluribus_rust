@@ -47,17 +47,23 @@ impl PokerEngine {
     }
 
     fn all_dealing_and_betting_rounds(&self) {
-        let borrowed_table = {*self.table}.borrow();
-        let mut borrowed_dealer = {*borrowed_table}.dealer.borrow_mut();
+        let table_rc = Rc::clone(&self.table);
+        {
+            let mut borrowed_table = table_rc.borrow_mut();
+            {
+                let mut borrowed_dealer = borrowed_table.dealer.borrow_mut();
+                borrowed_dealer.deal_private_cards(borrowed_table.players);
+                self.betting_round(true);
+                borrowed_dealer.deal_flop(Rc::clone(&self.table));
+                self.betting_round(false);
+                borrowed_dealer.deal_turn(Rc::clone(&self.table));
+                self.betting_round(false);
+                borrowed_dealer.deal_river(Rc::clone(&self.table));
+                self.betting_round(false);
+            }
+        }
         // let mut dealer = &self.table.dealer.borrow_mut();
-        borrowed_dealer.deal_private_cards(borrowed_table.players);
-        self.betting_round(true);
-        borrowed_dealer.deal_flop(self.table);
-        self.betting_round(false);
-        borrowed_dealer.deal_turn(self.table);
-        self.betting_round(false);
-        borrowed_dealer.deal_river(self.table);
-        self.betting_round(false);
+        
     }
 
     fn compute_winners(&mut self) {
@@ -205,8 +211,9 @@ impl PokerEngine {
 
     fn all_active_players_take_action(&mut self, first_round: bool) {
         for player in self.players_in_order_of_betting(first_round) {
-            if player.is_active {
-                self.state = player.take_action(self.state);
+            let mut borrwoed_player = {*player}.borrow_mut();
+            if borrwoed_player.is_active() {
+                self.state = borrwoed_player.take_action(&self.state);
             }
         }
     }
@@ -233,39 +240,80 @@ impl PokerEngine {
     }
     
     fn post_betting_analysis(&self) {
-        println!("Pot at the end of betting: {}", self.table.pot);
+        let borrowed_table = {*self.table}.borrow();
+        let borrowed_pot = {*borrowed_table.pot}.borrow();
+        println!("Pot at the end of betting: {:?}", borrowed_pot);
         println!("Players at the end of betting:");
-        for player in &self.table.players {
-            println!("{}", player);
+        for player in borrowed_table.players {
+            println!("{}", {*player}.borrow());
         }
-        let total_n_chips = self.table.pot.total + self.table.players.iter().map(|p| p.n_chips).sum::<i32>();
-        let n_chips_correct = total_n_chips == self.table.total_n_chips_on_table;
-        let pot_correct = self.table.pot.total == self.table.players.iter().map(|p| p.n_bet_chips).sum::<i32>();
+        let total_n_chips = 
+            borrowed_pot.total() 
+            +   borrowed_table.players
+                .iter()
+                .map(|p| {
+                    let player = {**p}.borrow();
+                    player.n_chips
+                })
+                .sum::<i32>();
+
+        let n_chips_correct = total_n_chips == borrowed_table.total_n_chips_on_table;
+        let pot_correct = borrowed_pot.total() == {
+            borrowed_table.players
+            .iter()
+            .map(|p| {
+                let player = {**p}.borrow();
+                player.n_chips
+            })
+            .sum::<i32>()};
         if !n_chips_correct || !pot_correct {
             panic!("Bad logic - total n_chips are not the same as at the start of the game");
         }
     }
     
     fn n_players_with_moves(&self) -> i32 {
-        self.table.players.iter().filter(|p| p.is_active && !p.is_all_in).count() as i32
+        let borrowed_table = {*self.table}.borrow();
+        borrowed_table.players.iter().filter(|p|{
+            let player = {***p}.borrow();
+            player.is_active() && !player.is_all_in()
+        }).count() as i32
     }
     
     fn n_active_players(&self) -> i32 {
-        self.table.players.iter().filter(|p| p.is_active).count() as i32
+        let borrowed_table = {*self.table}.borrow();
+        borrowed_table.players.iter().filter(|p| {
+            let player = {***p}.borrow();
+            player.is_active()
+        }).count() as i32
     }
     
     fn n_all_in_players(&self) -> i32 {
-        self.table.players.iter().filter(|p| p.is_active && p.is_all_in).count() as i32
+        let borrowed_table = {*self.table}.borrow();
+        borrowed_table.players.iter().filter(|p| {
+            let player = {***p}.borrow();
+            player.is_active() && player.is_all_in()
+        }).count() as i32
     }
     
     fn all_bets(&self) -> Vec<i32> {
-        self.table.players.iter().map(|p| p.n_bet_chips).collect()
+        let borrowed_table = {*self.table}.borrow();
+        borrowed_table.players.iter().map(|p| {
+            let player = {**p}.borrow();
+            player.n_bet_chips()
+        }).collect()
     }
     
     fn more_betting_needed(&self) -> bool {
-        let active_complete_bets: Vec<i32> = self.table.players.iter()
-            .filter(|p| p.is_active && !p.is_all_in)
-            .map(|p| p.n_bet_chips)
+        let borrowed_table = {*self.table}.borrow();
+        let active_complete_bets: Vec<i32> = borrowed_table.players.iter()
+            .filter(|p| {
+                let player = {***p}.borrow();
+                player.is_active() && !player.is_all_in()
+            })
+            .map(|p| {
+                let player = {**p}.borrow();
+                player.n_bet_chips()
+            })
             .collect();
         let all_bets_equal = active_complete_bets.iter().all(|&x| x == active_complete_bets[0]);
         !all_bets_equal
