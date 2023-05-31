@@ -8,14 +8,14 @@ use std::cell::RefCell;
 #[derive(Clone)]
 pub struct PokerGameState {
     previous_state: Option<Rc<PokerGameState>>,
-    table: Rc<PokerTable>,
+    table: Rc<RefCell<PokerTable>>,
     player: Option<Rc<Player>>,
     action: Option<String>,
     is_terminal: bool,
 }
 
 impl PokerGameState {
-    pub fn new_hand(table: Rc<PokerTable>) -> Self {
+    pub fn new_hand(table: Rc<RefCell<PokerTable>>) -> Self {
         PokerGameState {
             previous_state: None,
             table,
@@ -25,7 +25,7 @@ impl PokerGameState {
         }
     }
 
-    pub fn table(&self) -> Rc<PokerTable> {
+    pub fn table(&self) -> Rc<RefCell<PokerTable>> {
         Rc::clone(&self.table)
     }
 

@@ -6,14 +6,14 @@ use std::cell::RefCell;
 use super::card::Card;
 use super::dealer::Dealer;
 use super::evaluation::evaluator::Evaluator;
-use super::player::Player;
+use super::player::{Player, self};
 use super::pot::Pot;
 use super::state::PokerGameState;
 use super::table::PokerTable;
 
 
 pub struct PokerEngine {
-    table: RefCell<PokerTable>,
+    table: Rc<RefCell<PokerTable>>,
     small_blind: i32,
     big_blind: i32,
     evaluator: Evaluator,
@@ -22,13 +22,13 @@ pub struct PokerEngine {
 }
 
 impl PokerEngine {
-    pub fn new(table: RefCell<PokerTable>, small_blind: i32, big_blind: i32) -> Self {
+    pub fn new(table: Rc<RefCell<PokerTable>>, small_blind: i32, big_blind: i32) -> Self {
         PokerEngine {
-            table,
+            table: Rc::clone(&table),
             small_blind,
             big_blind,
             evaluator: Evaluator::new(),
-            state: PokerGameState::new_hand(Rc::new(*table.borrow())),
+            state: PokerGameState::new_hand(Rc::clone(&table)),
             wins_and_losses: Vec::new(),
         }
     }
@@ -41,22 +41,22 @@ impl PokerEngine {
     }
 
     fn round_setup(&mut self) {
-        let mut mutable_table = self.table.borrow_mut();
-        mutable_table.pot.reset();
+        self.reset_pot();
         self.assign_order_to_players();
         self.assign_blinds();
     }
 
     fn all_dealing_and_betting_rounds(&self) {
-        let immutable_table = self.table.borrow();
-        let mut dealer = immutable_table.dealer.borrow_mut();
-        dealer.deal_private_cards(immutable_table.players);
+        let borrowed_table = {*self.table}.borrow();
+        let mut borrowed_dealer = {*borrowed_table}.dealer.borrow_mut();
+        // let mut dealer = &self.table.dealer.borrow_mut();
+        borrowed_dealer.deal_private_cards(borrowed_table.players);
         self.betting_round(true);
-        dealer.deal_flop(self.table);
+        borrowed_dealer.deal_flop(self.table);
         self.betting_round(false);
-        dealer.deal_turn(self.table);
+        borrowed_dealer.deal_turn(self.table);
         self.betting_round(false);
-        dealer.deal_river(self.table);
+        borrowed_dealer.deal_river(self.table);
         self.betting_round(false);
     }
 
@@ -65,8 +65,10 @@ impl PokerEngine {
         let payouts = self._compute_payouts(ranked_player_groups);
         self.payout_players(&payouts);
         println!("Winnings computation complete. Players:");
-        for player in {self.table.borrow()}.players {
-            println!("{}", {player.borrow()});
+        let borrowed_table = {*self.table}.borrow();
+        let borrowed_players = borrowed_table.players;
+        for player in borrowed_players {
+            println!("{}", {{*player}.borrow()});
         }
     }
 
@@ -109,7 +111,9 @@ impl PokerEngine {
 
     fn _compute_payouts(&self, ranked_player_groups: Vec<Vec<Rc<Player>>>) -> HashMap<Rc<Player>, i32>{
         let mut payouts: HashMap<Rc<Player>, i32> = HashMap::new();
-        for pot in {self.table.borrow()}.pot.side_pots() {
+        let mut borrowed_table = {*self.table}.borrow_mut();
+        let mut borrowed_pot = {*borrowed_table.pot}.borrow_mut();
+        for pot in borrowed_pot.side_pots() {
             for player_group in ranked_player_groups {
                 let pot_payouts = self._process_side_pot(player_group, pot);
                 if let Ok(mut payouts) = pot_payouts {
@@ -123,18 +127,27 @@ impl PokerEngine {
         payouts
     }
 
+    fn reset_pot(&mut self) {
+        let mut borrowed_table = {*self.table}.borrow_mut();
+        let mut borrowed_pot = {*borrowed_table.pot}.borrow_mut();
+        borrowed_pot.reset();
+    }
     fn payout_players(&self, payouts: &HashMap<Rc<Player>, i32>) {
-        {self.table.borrow()}.pot.reset();
+        // let mut borrowed_table = {*self.table}.borrow_mut();
+        // let mut borrowed_pot = {*borrowed_table.pot}.borrow_mut();
+        // borrowed_pot.reset();
+        self.reset_pot();
         for (player, winnings) in payouts {
             player.add_chips(*winnings);
         }
     }
     
     fn rank_players_by_best_hand(&self) -> Vec<Vec<Rc<Player>>> {
-        let table_cards: Vec<Card> = {self.table.borrow()}.community_cards;
+        let borrowed_table = {*self.table}.borrow();
+        let table_cards: Vec<Card> = borrowed_table.community_cards;
         let mut grouped_players: HashMap<i32, Vec<Rc<Player>>> = HashMap::new();
-        for player in {self.table.borrow()}.players {
-            let mut borrowed_player = player.borrow();
+        for player in borrowed_table.players {
+            let mut borrowed_player = {*player}.borrow_mut();
             if borrowed_player.is_active() {
                 let hand_cards: Vec<Card> = borrowed_player.cards;
                 let rank = self.evaluator.evaluate(&table_cards, &hand_cards);
@@ -155,14 +168,18 @@ impl PokerEngine {
 
 
     fn assign_order_to_players(&self) {
-        for (player_i, player) in {self.table.borrow()}.players.iter().enumerate() {
-            {player.borrow()}.order = Some(player_i);
+        let borrowed_table = {*self.table}.borrow();
+        for (player_i, player) in borrowed_table.players.iter().enumerate() {
+            {{**player}.borrow()}.order = Some(player_i);
         }
     }
 
     fn assign_blinds(&self) {
-        {{self.table.borrow()}.players[0].borrow()}.add_to_pot(self.small_blind);
-        {{self.table.borrow()}.players[1].borrow()}.add_to_pot(self.big_blind);
+        let mut borrowed_table = {*self.table}.borrow_mut();
+        let mut borrowed_player_0 = {*borrowed_table.players[0]}.borrow_mut();
+        let mut borrowed_player_1 = {*borrowed_table.players[1]}.borrow_mut();
+        borrowed_player_0.add_to_pot(self.small_blind);
+        borrowed_player_1.add_to_pot(self.big_blind);
         // println!("Assigned blinds to players {}", {self.table.borrow()}.players[0..2]);
     }
 
@@ -174,13 +191,15 @@ impl PokerEngine {
         borrowed_table.set_players(players);
     }
 
-    fn players_in_order_of_betting(&self, first_round: bool) -> Vec<Player> {
+    fn players_in_order_of_betting(&self, first_round: bool) -> Vec<Rc<RefCell<Player>>> {
         if first_round {
-            let mut players = self.table.players[2..].to_vec();
-            players.extend_from_slice(&self.table.players[..2]);
+            let mut borrowed_table = {*self.table}.borrow_mut();
+            let mut players = {*borrowed_table.players}[2..].to_vec();
+            players.extend_from_slice(&{*borrowed_table.players}[..2]);
             players
         } else {
-            self.table.players.clone()
+            let mut borrowed_table = {*self.table}.borrow_mut();
+            borrowed_table.players.clone()
         }
     }
 

@@ -9,7 +9,7 @@ use super::state::PokerGameState;
 use std::cmp::{PartialEq, Eq};
 use std::hash::{Hash, Hasher};
 use std::fmt;
-
+use std::rc::Rc;
 
 #[derive(Clone, Eq, PartialEq)]
 pub struct Player {
@@ -17,7 +17,7 @@ pub struct Player {
     pub n_chips: i32,
     pub cards: Vec<Card>,
     pub id: String,
-    pub pot: RefCell<Pot>,
+    pub pot: Rc<RefCell<Pot>>,
     pub order: Option<usize>,
     pub is_small_blind: bool,
     pub is_big_blind: bool,
@@ -26,14 +26,14 @@ pub struct Player {
 }
 
 impl Player {
-    pub fn new(name: String, initial_chips: i32, pot: Pot) -> Player {
+    pub fn new(name: String, initial_chips: i32, pot: Rc<RefCell<Pot>>) -> Player {
         Player {
             name,
             n_chips: initial_chips,
             cards: Vec::new(),
             _is_active: true,
             id: Uuid::new_v4().simple().to_string(),
-            pot: pot.into(),
+            pot: pot,
             order: None,
             is_small_blind: false,
             is_big_blind: false,

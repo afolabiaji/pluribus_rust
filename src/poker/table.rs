@@ -9,16 +9,16 @@ use crate::poker::player::Player;
 use crate::poker::pot::Pot;
 
 pub struct PokerTable {
-    pub players: Vec<RefCell<Player>>,
+    pub players: Vec<Rc<RefCell<Player>>>,
     pub total_n_chips_on_table: i32,
-    pub pot: Rc<Pot>,
-    pub dealer: RefCell<Dealer>,
+    pub pot: Rc<RefCell<Pot>>,
+    pub dealer: Rc<RefCell<Dealer>>,
     pub community_cards: Vec<Card>,
     pub n_games: i32,
 }
 
 impl PokerTable {
-    pub fn new(players: Vec<RefCell<Player>>, pot: Rc<Pot>, include_suits:Option<Vec<&'static str>>, include_ranks:Option<Vec<i32>>) -> Self {
+    pub fn new(players: Vec<Rc<RefCell<Player>>>, pot: Rc<RefCell<Pot>>, include_suits:Option<Vec<&'static str>>, include_ranks:Option<Vec<i32>>) -> Self {
         let total_n_chips_on_table = players.iter().map(|p|(*p.borrow()).n_chips).sum();
 
         if players.len() < 2 {
@@ -33,11 +33,13 @@ impl PokerTable {
             panic!("Players and table point to different pots.");
         }
 
+        let new_dealer_refcell = RefCell::new(Dealer::new(include_suits, include_ranks));
+        let new_dealer_rc = Rc::new(new_dealer_refcell);
         Self {
             players,
             total_n_chips_on_table,
             pot: pot.clone(),
-            dealer: RefCell::new(Dealer::new(include_suits, include_ranks)),
+            dealer: new_dealer_rc,
             community_cards: Vec::new(),
             n_games: 0,
         }
@@ -47,7 +49,7 @@ impl PokerTable {
         self.players.len()
     }
 
-    pub fn set_players(&mut self, players: Vec<RefCell<Player>>) {
+    pub fn set_players(&mut self, players: Vec<Rc<RefCell<Player>>>) {
         self.players = players;
 
         if !self.players.iter().all(|p|{
