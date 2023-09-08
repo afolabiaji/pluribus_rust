@@ -95,9 +95,9 @@ impl Player {
         self.cards.push(card);
     }
 
-    pub fn take_action(&mut self, game_state: &PokerGameState) -> PokerGameState {
-        unimplemented!("All poker strategy is implemented here.");
-    }
+    // pub fn take_action(&mut self, game_state: &PokerGameState) -> PokerGameState {
+    //     unimplemented!("All poker strategy is implemented here.");
+    // }
 
     pub fn is_active(&self) -> bool {
         // Getter for if the player is playing or not.

@@ -12,7 +12,7 @@ pub struct PokerTable {
     pub players: Vec<Rc<RefCell<Player>>>,
     pub total_n_chips_on_table: i32,
     pub pot: Rc<RefCell<Pot>>,
-    pub dealer: Rc<RefCell<Dealer>>,
+    pub dealer: Dealer,
     pub community_cards: Vec<Card>,
     pub n_games: i32,
 }
@@ -34,13 +34,14 @@ impl PokerTable {
             panic!("Players and table point to different pots.");
         }
 
-        let new_dealer_refcell = RefCell::new(Dealer::new(include_suits, include_ranks));
-        let new_dealer_rc = Rc::new(new_dealer_refcell);
+        // let new_dealer_refcell = RefCell::new(Dealer::new(include_suits, include_ranks));
+        // let new_dealer_rc = Rc::new(new_dealer_refcell);
+        let dealer = Dealer::new(include_suits, include_ranks);
         Self {
             players: (*players).clone(),
             total_n_chips_on_table,
             pot: pot.clone(),
-            dealer: new_dealer_rc,
+            dealer: dealer,
             community_cards: Vec::new(),
             n_games: 0,
         }

@@ -22,9 +22,9 @@ impl Dealer {
         self.deck.pick(true)
     }
 
-    pub fn deal_private_cards(&mut self, players: Vec<Rc<RefCell<Player>>>) {
+    pub fn deal_private_cards(&mut self, players: &Vec<Rc<RefCell<Player>>>) {
         for _ in 0..2 {
-            for player in &players {
+            for player in players {
                 let card = self.deal_card();
                 let mut mutable_player = player.borrow_mut();
                 mutable_player.add_private_card(card);
@@ -32,27 +32,26 @@ impl Dealer {
         }
     }
 
-    pub fn deal_community_cards(&mut self, table: Rc<RefCell<PokerTable>>, n_cards: usize) {
+    pub fn deal_community_cards(&mut self, mut table: PokerTable, n_cards: usize) {
         if n_cards == 0 {
             panic!("Positive n of cards must be specified");
         }
 
         for _ in 0..n_cards {
             let card = self.deal_card();
-            let mut mutable_table = table.borrow_mut();
-            mutable_table.add_community_card(card);
+            table.add_community_card(card);
         }
     }
 
-    pub fn deal_flop(&mut self, table: Rc<RefCell<PokerTable>>) {
+    pub fn deal_flop(&mut self, table: PokerTable) {
         self.deal_community_cards(table, 3);
     }
 
-    pub fn deal_turn(&mut self, table: Rc<RefCell<PokerTable>>) {
+    pub fn deal_turn(&mut self, table: PokerTable) {
         self.deal_community_cards(table, 1);
     }
 
-    pub fn deal_river(&mut self, table: Rc<RefCell<PokerTable>>) {
+    pub fn deal_river(&mut self, table: PokerTable) {
         self.deal_community_cards(table, 1);
     }
 }

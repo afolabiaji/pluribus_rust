@@ -5,17 +5,17 @@ use std::fmt;
 use std::rc::Rc;
 use std::cell::RefCell;
 
-#[derive(Clone)]
+
 pub struct PokerGameState {
     previous_state: Option<Rc<PokerGameState>>,
-    table: Rc<RefCell<PokerTable>>,
+    table: PokerTable,
     player: Option<Rc<Player>>,
     action: Option<String>,
     is_terminal: bool,
 }
 
 impl PokerGameState {
-    pub fn new_hand(table: Rc<RefCell<PokerTable>>) -> Self {
+    pub fn new_hand(table: PokerTable) -> Self {
         PokerGameState {
             previous_state: None,
             table,
@@ -25,9 +25,9 @@ impl PokerGameState {
         }
     }
 
-    pub fn table(&self) -> Rc<RefCell<PokerTable>> {
-        Rc::clone(&self.table)
-    }
+    // pub fn table(&self) -> PokerTable {
+    //     self.table
+    // }
 
     pub fn is_terminal(&self) -> bool {
         self.is_terminal
