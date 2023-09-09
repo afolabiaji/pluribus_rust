@@ -4,16 +4,15 @@
     use std::cell::RefCell;
 
     use super::card::Card;
-    use super::dealer::Dealer;
     use super::evaluation::evaluator::Evaluator;
     use super::player::{Player, self};
     use super::pot::Pot;
     use super::state::PokerGameState;
-    use super::table::PokerTable;
+    use super::game::PokerGame;
 
 
     pub struct PokerEngine {
-        table: PokerTable,
+        game: PokerGame,
         small_blind: i32,
         big_blind: i32,
         evaluator: Evaluator,
@@ -22,9 +21,9 @@
     }
 
     impl PokerEngine {
-        pub fn new(table: PokerTable, small_blind: i32, big_blind: i32) -> Self {
+        pub fn new(game: PokerGame, small_blind: i32, big_blind: i32) -> Self {
             PokerEngine {
-                table: table,
+                game: game,
                 small_blind,
                 big_blind,
                 evaluator: Evaluator::new(),
@@ -47,15 +46,13 @@
         }
 
         fn all_dealing_and_betting_rounds(&mut self) {
-            let mut borrowed_dealer = self.table.dealer.borrow_mut();
-            let players = &self.table.players;
-            borrowed_dealer.deal_private_cards(&players);
+            self.game.deal_private_cards();
             self.betting_round(true);
-            borrowed_dealer.deal_flop(self.table);
+            self.game.deal_flop();
             self.betting_round(false);
-            borrowed_dealer.deal_turn(self.table);
+            self.game.deal_turn();
             self.betting_round(false);
-            borrowed_dealer.deal_river(self.table);
+            self.game.deal_river();
             self.betting_round(false);
             // let mut dealer = &self.table.dealer.borrow_mut();
             
@@ -66,8 +63,8 @@
             let payouts = self._compute_payouts(ranked_player_groups);
             self.payout_players(&payouts);
             println!("Winnings computation complete. Players:");
-            for player in self.table.players {
-                println!("{}", {{*player}.borrow()});
+            for &player in &self.game.players {
+                println!("{}", {&player});
             }
         }
 
@@ -126,8 +123,7 @@
         }
 
         fn reset_pot(&mut self) {
-            let mut borrowed_pot = self.table.pot.borrow_mut();
-            borrowed_pot.reset();
+            self.game.pot.reset();
         }
         fn payout_players(&self, payouts: &HashMap<Rc<Player>, i32>) {
             // let mut self.table = {*self.table}.borrow_mut();

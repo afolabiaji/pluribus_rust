@@ -50,7 +50,7 @@ impl Player {
         Box::new(Fold {})
     }
 
-    pub fn call(&mut self, players: &[Player]) -> Box<dyn Action> {
+    pub fn call(&mut self, players: Rc<RefCell<Player>>) -> Box<dyn Action> {
         if self.is_all_in() {
             return Box::new(Call {});
         } else {
@@ -95,9 +95,9 @@ impl Player {
         self.cards.push(card);
     }
 
-    // pub fn take_action(&mut self, game_state: &PokerGameState) -> PokerGameState {
-    //     unimplemented!("All poker strategy is implemented here.");
-    // }
+    pub fn take_action(&mut self, game_state: &PokerGameState) -> PokerGameState {
+        unimplemented!("All poker strategy is implemented here.");
+    }
 
     pub fn is_active(&self) -> bool {
         // Getter for if the player is playing or not.

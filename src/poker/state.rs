@@ -1,4 +1,4 @@
-use super::table::PokerTable;
+use super::game::PokerGame;
 use super::player::Player;
 
 use std::fmt;
@@ -8,17 +8,17 @@ use std::cell::RefCell;
 
 pub struct PokerGameState {
     previous_state: Option<Rc<PokerGameState>>,
-    table: PokerTable,
+    game: PokerGame,
     player: Option<Rc<Player>>,
     action: Option<String>,
     is_terminal: bool,
 }
 
 impl PokerGameState {
-    pub fn new_hand(table: PokerTable) -> Self {
+    pub fn new_hand(game: PokerGame) -> Self {
         PokerGameState {
             previous_state: None,
-            table,
+            game,
             player: None,
             action: None,
             is_terminal: false,
