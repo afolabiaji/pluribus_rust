@@ -140,8 +140,9 @@
         fn rank_players_by_best_hand(&self) -> Vec<Vec<Rc<Player>>> {
             let game_cards: Vec<Card> = self.game.community_cards;
             let mut grouped_players: HashMap<i32, Vec<Rc<Player>>> = HashMap::new();
-            for player in self.game.players {
-                let mut borrowed_player = {*player}.borrow_mut();
+            for player in &self.game.players {
+                let mut borrowed_player = *player.borrow_mut();
+                let y: () = borrowed_player;
                 if borrowed_player.is_active() {
                     let hand_cards: Vec<Card> = borrowed_player.cards;
                     let rank = self.evaluator.evaluate(&game_cards, &hand_cards);
