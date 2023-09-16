@@ -4,7 +4,7 @@ use std::cell::RefCell;
 use std::ptr;
 
 use crate::poker::card::Card;
-use crate::poker::dealer::Dealer;
+use crate::poker::deck::Deck;
 use crate::poker::player::Player;
 use crate::poker::pot::Pot;
 
@@ -70,7 +70,7 @@ impl PokerGame {
 
     pub fn deal_private_cards(&mut self) {
         for _ in 0..2 {
-            for player in self.players {
+            for player in &self.players {
                 let card = self.deal_card();
                 let mut mutable_player = player.borrow_mut();
                 mutable_player.add_private_card(card);

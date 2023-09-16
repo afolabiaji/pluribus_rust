@@ -27,7 +27,7 @@
                 small_blind,
                 big_blind,
                 evaluator: Evaluator::new(),
-                // state: PokerGameState::new_hand(table),
+                // state: PokerGameState::new_hand(game),
                 wins_and_losses: Vec::new(),
             }
         }
@@ -54,7 +54,7 @@
             self.betting_round(false);
             self.game.deal_river();
             self.betting_round(false);
-            // let mut dealer = &self.table.dealer.borrow_mut();
+            // let mut dealer = &self.game.dealer.borrow_mut();
             
         }
 
@@ -63,8 +63,9 @@
             let payouts = self._compute_payouts(ranked_player_groups);
             self.payout_players(&payouts);
             println!("Winnings computation complete. Players:");
-            for &player in &self.game.players {
-                println!("{}", {&player});
+            for player in self.game.players {
+                let p = {*player}.borrow();
+                println!("{}", {p});
             }
         }
 
@@ -107,7 +108,7 @@
 
         fn _compute_payouts(&self, ranked_player_groups: Vec<Vec<Rc<Player>>>) -> HashMap<Rc<Player>, i32>{
             let mut payouts: HashMap<Rc<Player>, i32> = HashMap::new();
-            let mut borrowed_pot = self.table.pot.borrow_mut();
+            let mut borrowed_pot = self.game.pot.borrow_mut();
             for pot in borrowed_pot.side_pots() {
                 for player_group in ranked_player_groups {
                     let pot_payouts = self._process_side_pot(player_group, pot);
@@ -123,11 +124,12 @@
         }
 
         fn reset_pot(&mut self) {
-            self.game.pot.reset();
+            let mut borrowed_pot = self.game.pot.borrow_mut();
+            borrowed_pot.reset();
         }
         fn payout_players(&self, payouts: &HashMap<Rc<Player>, i32>) {
-            // let mut self.table = {*self.table}.borrow_mut();
-            // let mut borrowed_pot = {*self.table.pot}.borrow_mut();
+            // let mut self.game = {*self.game}.borrow_mut();
+            // let mut borrowed_pot = {*self.game.pot}.borrow_mut();
             // borrowed_pot.reset();
             self.reset_pot();
             for (player, winnings) in payouts {
@@ -136,13 +138,13 @@
         }
         
         fn rank_players_by_best_hand(&self) -> Vec<Vec<Rc<Player>>> {
-            let table_cards: Vec<Card> = self.table.community_cards;
+            let game_cards: Vec<Card> = self.game.community_cards;
             let mut grouped_players: HashMap<i32, Vec<Rc<Player>>> = HashMap::new();
-            for player in self.table.players {
+            for player in self.game.players {
                 let mut borrowed_player = {*player}.borrow_mut();
                 if borrowed_player.is_active() {
                     let hand_cards: Vec<Card> = borrowed_player.cards;
-                    let rank = self.evaluator.evaluate(&table_cards, &hand_cards);
+                    let rank = self.evaluator.evaluate(&game_cards, &hand_cards);
                     let hand_class = self.evaluator.get_rank_class(rank);
                     let hand_desc = self.evaluator.class_to_string(hand_class).to_lowercase();
                     println!("Rank #{} {} {}", rank, borrowed_player, hand_desc);
@@ -160,33 +162,33 @@
 
 
         fn assign_order_to_players(&self) {
-            for (player_i, player) in self.table.players.iter().enumerate() {
+            for (player_i, player) in self.game.players.iter().enumerate() {
                 {{**player}.borrow()}.order = Some(player_i);
             }
         }
 
         fn assign_blinds(&self) {
-            let mut borrowed_player_0 = self.table.players[0].borrow_mut();
-            let mut borrowed_player_1 = self.table.players[1].borrow_mut();
+            let mut borrowed_player_0 = self.game.players[0].borrow_mut();
+            let mut borrowed_player_1 = self.game.players[1].borrow_mut();
             borrowed_player_0.add_to_pot(self.small_blind);
             borrowed_player_1.add_to_pot(self.big_blind);
-            // println!("Assigned blinds to players {}", {self.table.borrow()}.players[0..2]);
+            // println!("Assigned blinds to players {}", {self.game.borrow()}.players[0..2]);
         }
 
         fn move_blinds(&self) {
-            let mut players = self.table.players.clone();
+            let mut players = self.game.players;
             players.push(players.remove(0));
-            // println!("Rotated players from {} to {}", self.table.players.into_iter().map(|x| x.borrow()).collect(), players.into_iter().map(|x| x.borrow()).collect());
-            self.table.set_players(players);
+            // println!("Rotated players from {} to {}", self.game.players.into_iter().map(|x| x.borrow()).collect(), players.into_iter().map(|x| x.borrow()).collect());
+            self.game.set_players();
         }
 
         fn players_in_order_of_betting(&self, first_round: bool) -> Vec<Rc<RefCell<Player>>> {
             if first_round {
-                let mut players = self.table.players[2..].to_vec();
-                players.extend_from_slice(&self.table.players[..2]);
+                let mut players = self.game.players[2..].to_vec();
+                players.extend_from_slice(&self.game.players[..2]);
                 players
             } else {
-                self.table.players.clone()
+                self.game.players.clone()
             }
         }
 
@@ -194,7 +196,7 @@
             for player in self.players_in_order_of_betting(first_round) {
                 let mut borrwoed_player = {*player}.borrow_mut();
                 if borrwoed_player.is_active() {
-                    self.state = borrwoed_player.take_action(&self.state);
+                    // self.state = borrwoed_player.take_action(&self.state);
                 }
             }
         }
@@ -221,15 +223,15 @@
         }
         
         fn post_betting_analysis(&self) {
-            let borrowed_pot = {*self.table.pot}.borrow();
+            let borrowed_pot = {*self.game.pot}.borrow();
             println!("Pot at the end of betting: {:?}", borrowed_pot);
             println!("Players at the end of betting:");
-            for player in self.table.players {
+            for player in self.game.players {
                 println!("{}", {*player}.borrow());
             }
             let total_n_chips = 
                 borrowed_pot.total() 
-                +   self.table.players
+                +   self.game.players
                     .iter()
                     .map(|p| {
                         let player = {**p}.borrow();
@@ -237,9 +239,9 @@
                     })
                     .sum::<i32>();
 
-            let n_chips_correct = total_n_chips == self.table.total_n_chips_on_table;
+            let n_chips_correct = total_n_chips == self.game.total_n_chips_on_table;
             let pot_correct = borrowed_pot.total() == {
-                self.table.players
+                self.game.players
                 .iter()
                 .map(|p| {
                     let player = {**p}.borrow();
@@ -252,35 +254,35 @@
         }
         
         fn n_players_with_moves(&self) -> i32 {
-            self.table.players.iter().filter(|p|{
+            self.game.players.iter().filter(|p|{
                 let player = {***p}.borrow();
                 player.is_active() && !player.is_all_in()
             }).count() as i32
         }
         
         fn n_active_players(&self) -> i32 {
-            self.table.players.iter().filter(|p| {
+            self.game.players.iter().filter(|p| {
                 let player = {***p}.borrow();
                 player.is_active()
             }).count() as i32
         }
         
         fn n_all_in_players(&self) -> i32 {
-            self.table.players.iter().filter(|p| {
+            self.game.players.iter().filter(|p| {
                 let player = {***p}.borrow();
                 player.is_active() && player.is_all_in()
             }).count() as i32
         }
         
         fn all_bets(&self) -> Vec<i32> {
-            self.table.players.iter().map(|p| {
+            self.game.players.iter().map(|p| {
                 let player = {**p}.borrow();
                 player.n_bet_chips()
             }).collect()
         }
         
         fn more_betting_needed(&self) -> bool {
-            let active_complete_bets: Vec<i32> = self.table.players.iter()
+            let active_complete_bets: Vec<i32> = self.game.players.iter()
                 .filter(|p| {
                     let player = {***p}.borrow();
                     player.is_active() && !player.is_all_in()

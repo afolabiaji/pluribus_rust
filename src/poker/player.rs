@@ -50,14 +50,20 @@ impl Player {
         Box::new(Fold {})
     }
 
-    pub fn call(&mut self, players: Rc<RefCell<Player>>) -> Box<dyn Action> {
+    pub fn call(&mut self, players: &Vec<Rc<RefCell<Player>>>) -> Box<dyn Action> {
         if self.is_all_in() {
             return Box::new(Call {});
         } else {
             let biggest_bet = players
                 .iter()
-                .filter(|p| p.is_active())
-                .map(|p| p.n_bet_chips())
+                .filter(|p| {
+                    let player = p.borrow();
+                    player.is_active()
+                })
+                .map(|p| {
+                    let player = p.borrow();
+                    player.n_bet_chips()
+                })
                 .max()
                 .unwrap_or_default();
             let n_chips_to_call = biggest_bet - self.n_bet_chips();
