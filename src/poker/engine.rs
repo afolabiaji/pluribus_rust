@@ -1,4 +1,3 @@
-    use std::borrow::Borrow;
     use std::collections::{HashMap};
     use std::rc::Rc;
     use std::cell::RefCell;
@@ -17,7 +16,7 @@
         big_blind: i32,
         evaluator: Evaluator,
         // state: PokerGameState,
-        wins_and_losses: Vec<(Rc<Player>, i32)>,
+        wins_and_losses: Vec<(Rc<RefCell<Player>>, i32)>,
     }
 
     impl PokerEngine {
@@ -63,8 +62,9 @@
             let payouts = self._compute_payouts(ranked_player_groups);
             self.payout_players(&payouts);
             println!("Winnings computation complete. Players:");
-            for player in self.game.players {
-                let p = {*player}.borrow();
+            for player in &self.game.players {
+                // let y: () = player;
+                let p = player.borrow();
                 println!("{}", {p});
             }
         }
@@ -73,18 +73,23 @@
             self.move_blinds();
         }
 
-        fn _get_players_in_pot(&self, player_group: Vec<Rc<Player>>, pot: &HashMap<String, i32>) -> Vec<Rc<Player>> {
+        fn _get_players_in_pot(&self, player_group: &Vec<Rc<RefCell<Player>>>, pot: &HashMap<String, i32>) -> Vec<Rc<RefCell<Player>>> {
             let mut players_in_pot = Vec::new();
             for player in player_group.iter() {
-                if pot.contains_key(&{*player}.id) {
-                    players_in_pot.push(Rc::clone(&player));
+                let p = player.borrow();
+                if pot.contains_key(&p.id) {
+                    players_in_pot.push(Rc::clone(player));
                 }
             }
-            players_in_pot.sort_by(|a, b| a.order.cmp(&b.order));
+            players_in_pot.sort_by(|a, b| {
+                let a = a.borrow();
+                let b = b.borrow();
+                a.order.cmp(&b.order)
+            });
             players_in_pot
         }
 
-        fn _process_side_pot(&self, player_group: Vec<Rc<Player>>, pot: HashMap<String, i32>) -> Result<HashMap<String, i32>, &'static str> {
+        fn _process_side_pot(&self, player_group: &Vec<Rc<RefCell<Player>>>, pot: &HashMap<String, i32>) -> Result<HashMap<String, i32>, &'static str> {
             let mut payouts: HashMap<String, i32> = HashMap::new();
             let players_in_pot = self._get_players_in_pot(player_group, &pot);
             let n_players = players_in_pot.len() as i32;
@@ -95,26 +100,29 @@
             let n_per_player = n_total / n_players;
             let n_remainder = n_total - n_players * n_per_player;
             for player in players_in_pot.iter() {
-                let entry = payouts.entry(player.id).or_insert(0);
+                // let y : () = player;
+                let p = player.borrow();
+                let entry = payouts.entry(p.id.clone()).or_insert(0);
                 *entry += n_per_player;
             }
             for i in 0..n_remainder {
-                let player = players_in_pot[i as usize];
-                let entry = payouts.entry(player.id).or_insert(0);
+                let player = &players_in_pot[i as usize];
+                let p = player.borrow();
+                let entry = payouts.entry(p.id.clone()).or_insert(0);
                 *entry += 1;
             }
             Ok(payouts)
         }
 
-        fn _compute_payouts(&self, ranked_player_groups: Vec<Vec<Rc<Player>>>) -> HashMap<Rc<Player>, i32>{
-            let mut payouts: HashMap<Rc<Player>, i32> = HashMap::new();
+        fn _compute_payouts(&self, ranked_player_groups: Vec<Vec<Rc<RefCell<Player>>>>) -> HashMap<Rc<RefCell<Player>>, i32>{
+            let mut payouts: HashMap<Rc<RefCell<Player>>, i32> = HashMap::new();
             let mut borrowed_pot = self.game.pot.borrow_mut();
             for pot in borrowed_pot.side_pots() {
-                for player_group in ranked_player_groups {
-                    let pot_payouts = self._process_side_pot(player_group, pot);
+                for player_group in &ranked_player_groups {
+                    let pot_payouts = self._process_side_pot(player_group, &pot);
                     if let Ok(mut payouts) = pot_payouts {
-                        for (player_id, winnings) in payouts {
-                            *payouts.entry(player_id).or_insert(0) += winnings;
+                        for (player_id, winnings) in &payouts {
+                            *payouts.entry(*player_id).or_insert(0) += winnings;
                         }
                         break;
                     }
@@ -127,35 +135,35 @@
             let mut borrowed_pot = self.game.pot.borrow_mut();
             borrowed_pot.reset();
         }
-        fn payout_players(&self, payouts: &HashMap<Rc<Player>, i32>) {
+        fn payout_players(&mut self, payouts: &HashMap<Rc<RefCell<Player>>, i32>) {
             // let mut self.game = {*self.game}.borrow_mut();
             // let mut borrowed_pot = {*self.game.pot}.borrow_mut();
             // borrowed_pot.reset();
             self.reset_pot();
             for (player, winnings) in payouts {
-                player.add_chips(*winnings);
+                let mut p = player.borrow_mut();
+                p.add_chips(*winnings);
             }
         }
         
-        fn rank_players_by_best_hand(&self) -> Vec<Vec<Rc<Player>>> {
-            let game_cards: Vec<Card> = self.game.community_cards;
-            let mut grouped_players: HashMap<i32, Vec<Rc<Player>>> = HashMap::new();
+        fn rank_players_by_best_hand(&self) -> Vec<Vec<Rc<RefCell<Player>>>> {
+            let game_cards: &Vec<Card> = &self.game.community_cards;
+            let mut grouped_players: HashMap<i32, Vec<Rc<RefCell<Player>>>> = HashMap::new();
             for player in &self.game.players {
-                let mut borrowed_player = *player.borrow_mut();
-                let y: () = borrowed_player;
+                let mut borrowed_player = player.borrow_mut();
                 if borrowed_player.is_active() {
-                    let hand_cards: Vec<Card> = borrowed_player.cards;
+                    let hand_cards: Vec<Card> = borrowed_player.cards.clone();
                     let rank = self.evaluator.evaluate(&game_cards, &hand_cards);
                     let hand_class = self.evaluator.get_rank_class(rank);
                     let hand_desc = self.evaluator.class_to_string(hand_class).to_lowercase();
                     println!("Rank #{} {} {}", rank, borrowed_player, hand_desc);
-                    grouped_players.entry(rank).or_insert(Vec::new()).push(Rc::new(*borrowed_player));
+                    grouped_players.entry(rank).or_insert(Vec::new()).push(Rc::clone(player));
                 }
             }
-            let mut ranked_player_groups: Vec<Vec<Rc<Player>>> = Vec::new();
+            let mut ranked_player_groups: Vec<Vec<Rc<RefCell<Player>>>> = Vec::new();
             let mut ranks: Vec<i32> = grouped_players.keys().cloned().collect();
             ranks.sort();
-            for rank in ranks {
+            for rank in &ranks {
                 ranked_player_groups.push(grouped_players.get(&rank).unwrap().clone());
             }
             ranked_player_groups

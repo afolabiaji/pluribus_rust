@@ -69,8 +69,9 @@ impl PokerGame {
     }
 
     pub fn deal_private_cards(&mut self) {
+        let cloned_players: Vec<_> = self.players.iter().map(|p| p.clone()).collect();
         for _ in 0..2 {
-            for player in &self.players {
+            for player in &cloned_players {
                 let card = self.deal_card();
                 let mut mutable_player = player.borrow_mut();
                 mutable_player.add_private_card(card);
