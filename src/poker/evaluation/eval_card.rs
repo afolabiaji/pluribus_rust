@@ -137,7 +137,7 @@ impl EvaluationCard{
     }
 
 
-    fn print_pretty_card(card_int:i32){
+    fn _print_pretty_card(card_int:i32){
         println!("{}", EvaluationCard::int_to_pretty_str(card_int));
     }
 
@@ -156,15 +156,15 @@ impl EvaluationCard{
 
         println!("{output}");
     }
-    fn get_bitrank_int(card_int:i32) -> i32{
+    fn _get_bitrank_int(card_int:i32) -> i32{
         (card_int >> 16) & 0x1FFF
     }
 
-    fn get_prme(card_int:i32) -> i32{
+    fn _get_prme(card_int:i32) -> i32{
         card_int & 0x3F
     }
 
-    fn hand_to_binary(card_strs:Vec<&str>) -> Vec<i32>{
+    fn _hand_to_binary(card_strs:Vec<&str>) -> Vec<i32>{
         let mut bhand = Vec::new();
 
         for c in card_strs{

@@ -1,8 +1,6 @@
 use std::collections::HashMap;
-use std::rc::Rc;
 use uuid::Uuid;
 
-use super::player::Player;
 
 use std::cmp::{PartialEq, Eq};
 use std::hash::{Hash, Hasher};

@@ -306,7 +306,7 @@ impl LookupTable {
 
     fn get_lexographically_next_bit_sequence(bits: i32) -> impl Iterator<Item = i32> {
         let t = (bits | (bits - 1)) + 1;
-        let mut next = t | (((t & -t) / (bits & -bits)) >> 1) - 1;
+        let mut next = t | ((((t & -t) / (bits & -bits)) >> 1) - 1);
         std::iter::from_fn(move || {
             let result = next;
             let t = (next | (next - 1)) + 1;

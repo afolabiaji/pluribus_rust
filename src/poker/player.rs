@@ -18,7 +18,7 @@ pub struct Player {
     pub cards: Vec<Card>,
     pub id: String,
     pub pot: Rc<RefCell<Pot>>,
-    pub order: Option<usize>,
+    pub order: Option<u32>,
     pub is_small_blind: bool,
     pub is_big_blind: bool,
     pub is_dealer: bool,
@@ -33,7 +33,7 @@ impl Player {
             cards: Vec::new(),
             _is_active: true,
             id: Uuid::new_v4().simple().to_string(),
-            pot: pot,
+            pot,
             order: None,
             is_small_blind: false,
             is_big_blind: false,
@@ -101,7 +101,7 @@ impl Player {
         self.cards.push(card);
     }
 
-    pub fn take_action(&mut self, game_state: &PokerGameState) -> PokerGameState {
+    pub fn take_action(&mut self, _game_state: &PokerGameState) -> PokerGameState {
         unimplemented!("All poker strategy is implemented here.");
     }
 

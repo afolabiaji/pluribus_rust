@@ -1,7 +1,5 @@
-use std::collections::HashMap;
 use std::rc::Rc;
 use std::cell::RefCell;
-use std::ptr;
 
 use crate::poker::card::Card;
 use crate::poker::deck::Deck;
@@ -35,7 +33,7 @@ impl PokerGame {
         }
 
         Self {
-            players: players,
+            players,
             total_n_chips_on_table,
             pot: pot.clone(),
             community_cards: Vec::new(),

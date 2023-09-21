@@ -1,9 +1,7 @@
 use super::game::PokerGame;
 use super::player::Player;
 
-use std::fmt;
 use std::rc::Rc;
-use std::cell::RefCell;
 
 
 pub struct PokerGameState {
