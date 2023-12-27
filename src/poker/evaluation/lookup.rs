@@ -280,12 +280,12 @@ impl LookupTable {
     fn straight_and_highcards(&mut self, straights: &Vec<i32>, highcards: &Vec<i32>) {
         LookupTable::fill_in_lookup_table(
             LookupTable::MAX_FLUSH + 1,
-            &straights,
+            straights,
             &mut self.unsuited_lookup
         );
         LookupTable::fill_in_lookup_table(
             LookupTable::MAX_PAIR + 1,
-            &highcards,
+            highcards,
             &mut self.unsuited_lookup
         );
     }

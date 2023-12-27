@@ -43,7 +43,7 @@ impl Card {
 
         let suit_char = suit.chars().next().unwrap();
 
-        let eval_card = EvaluationCard::new(&format!("{}{}", rank_char, suit_char).as_str());
+        let eval_card = EvaluationCard::new(format!("{}{}", rank_char, suit_char).as_str());
 
         Card {
             eval_card,

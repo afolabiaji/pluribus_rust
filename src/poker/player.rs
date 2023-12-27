@@ -52,7 +52,7 @@ impl Player {
 
     pub fn call(&mut self, players: &Vec<Rc<RefCell<Player>>>) -> Box<dyn Action> {
         if self.is_all_in() {
-            return Box::new(Call {});
+            Box::new(Call {})
         } else {
             let biggest_bet = players
                 .iter()

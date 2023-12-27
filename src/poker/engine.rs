@@ -93,7 +93,7 @@ impl PokerEngine {
         pot: &HashMap<String, i32>
     ) -> Result<HashMap<String, i32>, &'static str> {
         let mut payouts: HashMap<String, i32> = HashMap::new();
-        let players_in_pot = self._get_players_in_pot(player_group, &pot);
+        let players_in_pot = self._get_players_in_pot(player_group, pot);
         let n_players = players_in_pot.len() as i32;
         if n_players == 0 {
             return Ok(HashMap::new());
@@ -168,7 +168,7 @@ impl PokerEngine {
         let mut ranks: Vec<i32> = grouped_players.keys().cloned().collect();
         ranks.sort();
         for rank in &ranks {
-            ranked_player_groups.push(grouped_players.get(&rank).unwrap().clone());
+            ranked_player_groups.push(grouped_players.get(rank).unwrap().clone());
         }
         ranked_player_groups
     }

@@ -16,12 +16,6 @@ use super::lookup::{
 };
 use super::eval_card::EvaluationCard;
 
-enum HandSize {
-    Five,
-    Six,
-    Seven
-}
-
 pub struct Evaluator{
     table: LookupTable,
 }
@@ -63,7 +57,7 @@ impl Evaluator {
         let mut minimum = LookupTable::MAX_HIGH_CARD;
 
         for combo in cards.iter().combinations(5){
-            let combo = combo.iter().map(|&x| x.clone()).collect();
+            let combo = combo.iter().map(|&x| *x).collect();
             let score = self._five(combo);
             if score < minimum {
                 minimum = score;
@@ -77,7 +71,7 @@ impl Evaluator {
         let mut minimum = LookupTable::MAX_HIGH_CARD;
 
         for combo in cards.iter().combinations(5){
-            let combo = combo.iter().map(|&x| x.clone()).collect();
+            let combo = combo.iter().map(|&x| *x).collect();
             let score = self._five(combo);
             if score < minimum {
                 minimum = score;
@@ -89,7 +83,7 @@ impl Evaluator {
         
     pub fn get_rank_class(&self, hr:i32) -> i32 {
         // Returns the class of hand from the hand hand_rank from evaluate.
-        if (hr >= 0) && (hr <= LookupTable::MAX_STRAIGHT_FLUSH){
+        if (0..=LookupTable::MAX_STRAIGHT_FLUSH).contains(&hr){
             LookupTable::MAX_TO_RANK_CLASS(MaxHand::StraightFlush)
         } else if hr <= LookupTable::MAX_FOUR_OF_A_KIND {
             LookupTable::MAX_TO_RANK_CLASS(MaxHand::FourOfAKind)

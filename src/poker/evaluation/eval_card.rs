@@ -78,11 +78,11 @@ impl EvaluationCard{
 
         let rank_binding = EvaluationCard::CHAR_RANK_TO_INT_RANK();
         let rank_int: &i32 = rank_binding.get(&rank_char)
-            .expect(&EvaluationCard::generate_panic_string(&rank_char, "CHAR_RANK_TO_INT_RANK"));
+            .unwrap_or_else(|| { panic!("{}", EvaluationCard::generate_panic_string(&rank_char, "CHAR_RANK_TO_INT_RANK")) });
         
         let suit_binding = EvaluationCard::CHAR_SUIT_TO_INT_SUIT();
         let suit_int: &i32 = suit_binding.get(&suit_char)
-            .expect(&EvaluationCard::generate_panic_string(&suit_char, "CHAR_SUIT_TO_INT_SUIT"));
+            .unwrap_or_else(|| { panic!("{}", EvaluationCard::generate_panic_string(&suit_char, "CHAR_SUIT_TO_INT_SUIT")) });
                 
 
         let rank_prime: i32 = EvaluationCard::PRIMES[*rank_int as usize];
@@ -105,7 +105,7 @@ impl EvaluationCard{
         let str_rank = EvaluationCard::STR_RANKS[rank_int as usize];
         let binding = EvaluationCard::INT_SUIT_TO_CHAR_SUIT();
         let char_suit = *binding.get(&suit_int)
-            .expect(&EvaluationCard::generate_panic_string(&suit_int, "INT_SUIT_TO_CHAR_SUIT"));
+            .unwrap_or_else(|| { panic!("{}", EvaluationCard::generate_panic_string(&suit_int, "INT_SUIT_TO_CHAR_SUIT")) });
 
         format!("{}{}", str_rank, char_suit)
     }
@@ -117,14 +117,14 @@ impl EvaluationCard{
         let str_rank = EvaluationCard::STR_RANKS[rank_int as usize];
         let binding = EvaluationCard::INT_SUIT_TO_CHAR_SUIT();
         let char_suit = *binding.get(&suit_int)
-            .expect(&EvaluationCard::generate_panic_string(&suit_int, "INT_SUIT_TO_CHAR_SUIT"));
+            .unwrap_or_else(|| { panic!("{}", EvaluationCard::generate_panic_string(&suit_int, "INT_SUIT_TO_CHAR_SUIT")) });
 
         
 
         if EvaluationCard::PRETTY_REDS.contains(&suit_int){
-            return format!("{}{}", str_rank, char_suit).red()
+            format!("{}{}", str_rank, char_suit).red()
         } else{
-            return format!("{}{}", str_rank, char_suit).black()
+            format!("{}{}", str_rank, char_suit).black()
         }
     }
 
@@ -148,9 +148,9 @@ impl EvaluationCard{
             let c = card_ints[i];
             output.push_str(&EvaluationCard::int_to_pretty_str(c));
             if i != card_ints.len() - 1{
-                output.push_str(",");
+                output.push(',');
             }else{
-                output.push_str(" ");
+                output.push(' ');
             }
         }
 

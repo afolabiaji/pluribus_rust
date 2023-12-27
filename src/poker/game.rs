@@ -17,7 +17,7 @@ pub struct PokerGame {
 
 impl PokerGame {
     pub fn new(players: Vec<Rc<RefCell<Player>>>, pot: Rc<RefCell<Pot>>, include_suits:Option<Vec<&'static str>>, include_ranks:Option<Vec<i32>>) -> Self {
-        let total_n_chips_on_table = players.iter().map(|p|(*p.borrow()).n_chips).sum();
+        let total_n_chips_on_table = players.iter().map(|p|p.borrow().n_chips).sum();
 
         if players.len() < 2 {
             panic!("Must be at least two players on the table.");
@@ -67,7 +67,7 @@ impl PokerGame {
     }
 
     pub fn deal_private_cards(&mut self) {
-        let cloned_players: Vec<_> = self.players.iter().map(|p| p.clone()).collect();
+        let cloned_players: Vec<_> = self.players.to_vec();
         for _ in 0..2 {
             for player in &cloned_players {
                 let card = self.deal_card();

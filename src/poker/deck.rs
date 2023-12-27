@@ -24,7 +24,7 @@ impl Deck  {
         let mut cards_in_deck = Vec::new();
         for suit in suits.iter() {
             for rank in ranks.iter() {
-                cards_in_deck.push(Card::new(&rank.to_string(), &suit.to_string()));
+                cards_in_deck.push(Card::new(&rank.to_string(), suit));
             }
         }
         let mut rng = thread_rng();
@@ -45,7 +45,7 @@ impl Deck  {
         self.cards_in_deck = Vec::new();
         for suit in self.include_suits.iter() {
             for rank in self.include_ranks.iter() {
-                self.cards_in_deck.push(Card::new(&rank.to_string(), &suit.to_string()));
+                self.cards_in_deck.push(Card::new(&rank.to_string(), suit));
             }
         }
         let mut rng = thread_rng();
